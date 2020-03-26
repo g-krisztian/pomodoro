@@ -34,8 +34,7 @@
                           :paused false
                           :active true
                           :stop false})
-  (swap! app-state update-in [:history] conj {:task-name
-                                              (:task-name @app-state) 
+  (swap! app-state update-in [:history] conj {:task-name (:task-name @app-state) 
                                               :lenght (:lenght @app-state)
                                               :start (:start-time @app-state)
                                               :key (:key @app-state)})
@@ -60,12 +59,21 @@
 (defn delete-history-on-click []
   (swap! app-state merge {:history nil}))
 
+(defn common-button-style [value callback]
+  {:type :button
+   :value value
+   :style {:width "150px"}
+   :on-click callback})
+
+(defn hideable-button-element [key value callback]
+  [:input 
+   (merge 
+     (common-button-style value callback)
+     {:style (merge {:width "150px"} (when (key @app-state) {:display "none"}))})])
+                                                 
 (defn button-element [key value callback]
-  [:input {:type :button
-           ;           :style (when (key @app-state) {:display "none"})
-           :style (merge {:width "150px"} (when (key @app-state) {:display "none"}))
-           :value value
-           :on-click callback}])
+  [:input (merge (common-button-style value callback)
+            {:disabled (key @app-state)})])
 
 (defn history-table []
   (when (:history @app-state)
@@ -142,10 +150,10 @@
     (text-input :task-name)
     (number-input :lenght)]
    [:div {:class "btn-group" :style {:margin "1%"}}
-    (button-element :active "Start timer" start-button-on-click)
-    (button-element :paused "Pause timer" pause-button-on-click)
-    (button-element :resume "Resume timer" pause-button-on-click)
-    (button-element :stop "Stop timer" stop-button-on-click)]
+    (hideable-button-element :active "Start timer" start-button-on-click)
+    (hideable-button-element :paused "Pause timer" pause-button-on-click)
+    (hideable-button-element :resume "Resume timer" pause-button-on-click)
+    (hideable-button-element :stop "Stop timer" stop-button-on-click)]
    (progress-bar)
    [:div {:style {:margin "1%"}}
     (history-table)]])
