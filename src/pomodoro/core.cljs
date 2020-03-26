@@ -8,10 +8,10 @@
 
 (defonce app-state (r/atom {:paused true
                             :active false
-                            :resume false
+                            :resume true
                             :stop true
                             :lenght 5
-                            :task "Default"
+                            :task-name "Default"
                             :now (.getTime (js/Date.))
                             :key 0}))
 
@@ -34,7 +34,8 @@
                           :paused false
                           :active true
                           :stop false})
-  (swap! app-state update-in [:history] conj {:task (:task @app-state) 
+  (swap! app-state update-in [:history] conj {:task-name
+                                              (:task-name @app-state) 
                                               :lenght (:lenght @app-state)
                                               :start (:start-time @app-state)
                                               :key (:key @app-state)})
@@ -53,7 +54,7 @@
                           :elapsed 0}))
 
 (defn restart-button-on-click [task]
-  (swap! app-state merge (select-keys task [:task :lenght]))
+  (swap! app-state merge (select-keys task [:task-name :lenght]))
   (start-button-on-click nil))
 
 (defn delete-history-on-click []
@@ -61,7 +62,7 @@
 
 (defn button-element [key value callback]
   [:input {:type :button
-;           :style (when (key @app-state) {:display "none"})
+           ;           :style (when (key @app-state) {:display "none"})
            :style (merge {:width "150px"} (when (key @app-state) {:display "none"}))
            :value value
            :on-click callback}])
@@ -79,7 +80,7 @@
      [:tbody
       (for [task (:history @app-state)] 
         [:tr {:key (:key task)}
-         [:td (:task task)]
+         [:td (:task-name task)]
          [:td (tf/render-time (tf/correct-time (:start task)))]
          [:td (tf/render-time (* 1000 (:lenght task)))]
          [:td (tf/render-time (:duration task))]
@@ -138,7 +139,7 @@
    [:h1 "Pomodoro app"]
    [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @app-state))))]
    [:div {:style {:margin "1%"}}
-    (text-input :task)
+    (text-input :task-name)
     (number-input :lenght)]
    [:div {:class "btn-group" :style {:margin "1%"}}
     (button-element :active "Start timer" start-button-on-click)
