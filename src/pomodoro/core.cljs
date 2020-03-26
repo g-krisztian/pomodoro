@@ -8,18 +8,16 @@
 
 (defonce app-state (r/atom {:paused true
                             :active false
+                            :resume false
+                            :stop true
                             :lenght 5
                             :task "Default"
                             :now (.getTime (js/Date.))
                             :key 0}))
 
-(defonce ui-state (r/atom {:paused false
-                           :active false
-                           :stop true}))
-
 (defn update-history [duration]
   (swap! app-state update-in [:history]
-        #(conj (rest %) (merge (first %) {:duration duration}))))
+    #(conj (rest %) (merge (first %) {:duration duration}))))
 
 (defn update-stop-time []
   (let [now (.getTime (js/Date.))
@@ -34,11 +32,8 @@
   (swap! app-state merge {:start-time (.getTime (js/Date.))
                           :elapsed 0
                           :paused false
-                          :active true})
-  (reset! ui-state {:paused false
-                    :active true
-                    :stop false})
-  
+                          :active true
+                          :stop false})
   (swap! app-state update-in [:history] conj {:task (:task @app-state) 
                                               :lenght (:lenght @app-state)
                                               :start (:start-time @app-state)
@@ -47,16 +42,15 @@
 
 (defn pause-button-on-click []
   (swap! app-state update-in [:paused] not)
+  (swap! app-state update-in [:resume] not)
   (swap! app-state merge {:paused-time (.getTime (js/Date.))}))
 
 (defn stop-button-on-click []
   (update-stop-time)
   (swap! app-state merge {:paused true
-                          :active false})
-  (reset! ui-state {:paused true
-                    :active false
-                    :stop true}))
-  
+                          :active false
+                          :stop true
+                          :elapsed 0}))
 
 (defn restart-button-on-click [task]
   (swap! app-state merge (select-keys task [:task :lenght]))
@@ -67,7 +61,8 @@
 
 (defn button-element [key value callback]
   [:input {:type :button
-           :disabled (key @ui-state)
+;           :style (when (key @app-state) {:display "none"})
+           :style (merge {:width "150px"} (when (key @app-state) {:display "none"}))
            :value value
            :on-click callback}])
 
@@ -123,7 +118,6 @@
 (defonce ticker
   (js/setInterval main-loop 1000))
 
-
 (defn progress-bar []
   (let [lenght (:lenght @app-state)
         elapsed (:elapsed @app-state)
@@ -131,13 +125,13 @@
     [:div {:class "progress"
            :margin "0px"
            :style {:margin "1%"}}
-          [:div {:class "progress-bar"
-                 :role "progressbar"
-                 :style {:width  (str progress "%")}
-                 :aria-valuemin "0"
-                 :aria-valuemax 100
-                 :aria-valuenow progress}
-           (tf/render-time (* 1000 elapsed))]]))
+     [:div {:class "progress-bar"
+            :role "progressbar"
+            :style {:width  (str progress "%")}
+            :aria-valuemin "0"
+            :aria-valuemax 100
+            :aria-valuenow progress}
+      (tf/render-time (* 1000 elapsed))]]))
   
 (defn applet []
   [:div#app {:style {:margin "1%"}}
@@ -149,12 +143,13 @@
    [:div {:class "btn-group" :style {:margin "1%"}}
     (button-element :active "Start timer" start-button-on-click)
     (button-element :paused "Pause timer" pause-button-on-click)
+    (button-element :resume "Resume timer" pause-button-on-click)
     (button-element :stop "Stop timer" stop-button-on-click)]
    (progress-bar)
    [:div {:style {:margin "1%"}}
-    (history-table)]
-   [:p (str @app-state)]
-   [:p (str @ui-state)]])
+    (history-table)]])
+;   [:p (str @app-state)]
+;   [:p (str @ui-state)]])
    
 
 (rd/render [applet] (. js/document (getElementById "app")))  

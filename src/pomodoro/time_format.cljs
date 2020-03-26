@@ -15,7 +15,7 @@
   (-> time
       (quot 3600000)
       (mod 24)))
-  
+
 (defn render-time [time]
   (format/format "%02d:%02d:%02d" (hour time) (minute time) (sec time)))
 
