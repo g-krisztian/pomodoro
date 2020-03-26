@@ -6,39 +6,32 @@
 
 (enable-console-print!)
 
-(defonce app-state (r/atom {:paused true
-                            :active false
-                            :resume true
-                            :stop true
-                            :lenght 5
+(defonce app-state (r/atom {:lenght    5
                             :task-name "Default"
-                            :now (.getTime (js/Date.))
-                            :key 0}))
+                            :now       (.getTime (js/Date.))
+                            :key       0}))
 
-(defn update-history [duration]
-  (swap! app-state update-in [:history]
-    #(conj (rest %) (merge (first %) {:duration duration}))))
+(defn reset-task []
+  (swap! app-state merge {:paused  true
+                          :active  false
+                          :stop    true
+                          :resume  true
+                          :elapsed 0}))
 
 (defn update-stop-time []
-  (let [now (.getTime (js/Date.))
-        start (:start-time @app-state)
-        real-duration (- now start)
+  (let [now             (.getTime (js/Date.))
+        start           (:start-time @app-state)
+        real-duration   (- now start)
         paused-duration (- (:paused-time @app-state) start)]
-    (if (:paused @app-state false)
-      (update-history paused-duration)
-      (update-history real-duration))))
+    (if (:paused @app-state false) paused-duration real-duration)))
 
 (defn start-button-on-click [e]
   (swap! app-state merge {:start-time (.getTime (js/Date.))
-                          :elapsed 0
-                          :paused false
-                          :active true
-                          :stop false})
-  (swap! app-state update-in [:history] conj {:task-name (:task-name @app-state) 
-                                              :lenght (:lenght @app-state)
-                                              :start (:start-time @app-state)
-                                              :key (:key @app-state)})
-  (swap! app-state update-in [:key] inc))
+                          :elapsed    0
+                          :paused     false
+                          :active     true
+                          :stop       false}))
+  
 
 (defn pause-button-on-click []
   (swap! app-state update-in [:paused] not)
@@ -46,11 +39,14 @@
   (swap! app-state merge {:paused-time (.getTime (js/Date.))}))
 
 (defn stop-button-on-click []
-  (update-stop-time)
-  (swap! app-state merge {:paused true
-                          :active false
-                          :stop true
-                          :elapsed 0}))
+  (swap! app-state update-in [:history]
+         conj {:task-name            (:task-name @app-state) 
+               :lenght   (:lenght @app-state)
+               :start    (:start-time @app-state)
+               :key      (:key @app-state)
+               :duration (update-stop-time)})
+  (reset-task)
+  (swap! app-state update-in [:key] inc))
 
 (defn restart-button-on-click [task]
   (swap! app-state merge (select-keys task [:task-name :lenght]))
@@ -60,9 +56,9 @@
   (swap! app-state merge {:history nil}))
 
 (defn common-button-style [value callback]
-  {:type :button
-   :value value
-   :style {:width "150px"}
+  {:type     :button
+   :value    value
+   :style    {:width "150px"}
    :on-click callback})
 
 (defn hideable-button-element [key value callback]
@@ -73,7 +69,7 @@
                                                  
 (defn button-element [key value callback]
   [:input (merge (common-button-style value callback)
-            {:disabled (key @app-state)})])
+                 {:disabled (key @app-state)})])
 
 (defn history-table []
   (when (:history @app-state)
@@ -101,17 +97,17 @@
   (when (= 13 (.-charCode e)) (start-button-on-click e)))
 
 (defn text-input [key]
-  [:input {:type "text"
-           :value (key @app-state)
-           :on-change #(swap-value key %)
-           :disabled (:active @app-state)
+  [:input {:type         "text"
+           :value        (key @app-state)
+           :on-change    #(swap-value key %)
+           :disabled     (:active @app-state)
            :on-key-press start-with-enter}])
 
 (defn number-input [key]
-  [:input {:type "number"
-           :value (key @app-state)
-           :on-change #(swap-value key %)
-           :disabled (:active @app-state)
+  [:input {:type         "number"
+           :value        (key @app-state)
+           :on-change    #(swap-value key %)
+           :disabled     (:active @app-state)
            :on-key-press start-with-enter}])
 
 (defn finish []
@@ -127,16 +123,18 @@
 (defonce ticker
   (js/setInterval main-loop 1000))
 
+(reset-task)
+
 (defn progress-bar []
-  (let [lenght (:lenght @app-state)
-        elapsed (:elapsed @app-state)
+  (let [lenght   (:lenght @app-state)
+        elapsed  (:elapsed @app-state)
         progress (* 100 (/ elapsed lenght))]
-    [:div {:class "progress"
+    [:div {:class  "progress"
            :margin "0px"
-           :style {:margin "1%"}}
-     [:div {:class "progress-bar"
-            :role "progressbar"
-            :style {:width  (str progress "%")}
+           :style  {:margin "1%"}}
+     [:div {:class         "progress-bar"
+            :role          "progressbar"
+            :style         {:width (str progress "%")}
             :aria-valuemin "0"
             :aria-valuemax 100
             :aria-valuenow progress}
@@ -157,9 +155,7 @@
    (progress-bar)
    [:div {:style {:margin "1%"}}
     (history-table)]])
-;   [:p (str @app-state)]
-;   [:p (str @ui-state)]])
-   
+   ;[:p (str @app-state)]])
 
 (rd/render [applet] (. js/document (getElementById "app")))  
 
