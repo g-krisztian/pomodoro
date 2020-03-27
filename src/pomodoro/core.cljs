@@ -1,6 +1,7 @@
 (ns pomodoro.core
   (:require [reagent.core :as r]
             [reagent.dom :as rd]
+            [reagent.session :as rs]
             [pomodoro.audio :as audio]
             [pomodoro.time-format :as tf]))
 
@@ -39,8 +40,8 @@
   (swap! app-state merge {:paused-time (.getTime (js/Date.))}))
 
 (defn stop-button-on-click []
-  (swap! app-state update-in [:history]
-         conj {:task-name            (:task-name @app-state) 
+  (rs/update-in! [:history]
+         conj {:task-name(:task-name @app-state) 
                :lenght   (:lenght @app-state)
                :start    (:start-time @app-state)
                :key      (:key @app-state)
@@ -53,7 +54,7 @@
   (start-button-on-click nil))
 
 (defn delete-history-on-click []
-  (swap! app-state merge {:history nil}))
+  (rs/swap! merge {:history nil}))
 
 (defn common-button-style [value callback]
   {:type     :button
@@ -63,16 +64,16 @@
 
 (defn hideable-button-element [key value callback]
   [:input 
-   (merge 
-     (common-button-style value callback)
-     {:style (merge {:width "150px"} (when (key @app-state) {:display "none"}))})])
+   (merge
+    (common-button-style value callback)
+    {:style (merge {:width "150px"} (when (key @app-state) {:display "none"}))})])
                                                  
 (defn button-element [key value callback]
   [:input (merge (common-button-style value callback)
                  {:disabled (key @app-state)})])
 
 (defn history-table []
-  (when (:history @app-state)
+  (when (rs/get :history)
     [:table {:class "table table-striped table-bordered"}
      [:thead {:class "thead-dark"}
       [:tr
@@ -82,7 +83,7 @@
        [:th "Real duration"]
        [:th (button-element :active "Delete history" delete-history-on-click)]]]
      [:tbody
-      (for [task (:history @app-state)] 
+      (for [task (rs/get :history)] 
         [:tr {:key (:key task)}
          [:td (:task-name task)]
          [:td (tf/render-time (tf/correct-time (:start task)))]
@@ -154,8 +155,8 @@
     (hideable-button-element :stop "Stop timer" stop-button-on-click)]
    (progress-bar)
    [:div {:style {:margin "1%"}}
-    (history-table)]])
-   ;[:p (str @app-state)]])
+    (history-table)
+    [:p (rs/get :history)]]])
 
 (rd/render [applet] (. js/document (getElementById "app")))  
 
