@@ -122,10 +122,6 @@
     (swap! app-state update-in [:elapsed] inc)
     (when (> (:elapsed @app-state) (:lenght @app-state)) (finish))))
 
-(defonce ticker
-  (js/setInterval main-loop 1000))
-
-(reset-task)
 
 (defn progress-bar []
   (let [lenght   (:lenght @app-state)
@@ -141,6 +137,11 @@
             :aria-valuemax 100
             :aria-valuenow progress}
       (tf/render-time (* 1000 elapsed))]]))
+
+(reset-task)
+
+(defonce ticker
+  (js/setInterval main-loop 1000))
   
 (defn applet []
   [:div#app {:style {:margin "1%"}}
@@ -156,8 +157,7 @@
     (hideable-button-element :stop "Stop timer" stop-button-on-click)]
    (progress-bar)
    [:div {:style {:margin "1%"}}
-    (history-table)
-    [:p (rc/get :history)]]])
+    (history-table)]])
 
 (rd/render [applet] (. js/document (getElementById "app")))  
 
