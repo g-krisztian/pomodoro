@@ -1,6 +1,6 @@
 # pomodoro
 
-FIXME: Write a one-line description of your library/project.
+Simply pomodoro app with history, and storage
 
 ## Overview
 
@@ -34,6 +34,6 @@ get live reloading, nor a REPL.
 
 ## License
 
-Copyright © 2014 FIXME
+Copyright © 2020
 
 Distributed under the Eclipse Public License either version 1.0 or (at your option) any later version.
