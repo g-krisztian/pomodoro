@@ -3,7 +3,8 @@
             [reagent.dom :as rd]
             [reagent.cookies :as rc]
             [pomodoro.audio :as audio]
-            [pomodoro.time-format :as tf]))
+            [pomodoro.time-format :as tf]
+            [cognitect.transit :as t]))
 
 (enable-console-print!)
 
@@ -138,6 +139,30 @@
             :aria-valuenow progress}
       (tf/render-time (* 1000 elapsed))]]))
 
+(defn summary []
+  (when (rc/contains-key? :history)
+    (let [table (rc/get :history)]
+      [:table {:class "table table-striped table-bordered"}
+       [:thead {:class "thead-dark"}
+        [:tr
+         [:th "Task name"]
+         [:th "Spent time"]]]
+       [:tbody
+        (for [task (rc/get :history)] 
+         [:tr {:key (:key task)}
+          [:td (:task-name task)]
+          [:td (tf/render-time (tf/correct-time (:start task)))]
+          [:td (tf/render-time (* 1000 (:lenght task)))]
+          [:td (tf/render-time (:duration task))]
+          [:td (button-element :active "Restart" #(restart-button-on-click task))]])]])))
+(defn repl []
+  (->> (rc/get :history)
+       (map #(select-keys % [:task-name :duration]))
+       (group-by :task-name)
+       (map (fn [[k v]] {k (reduce + (for [d v] (:duration d)))}))))
+            
+  
+
 (reset-task)
 
 (defonce ticker
@@ -157,7 +182,10 @@
     (hideable-button-element :stop "Stop timer" stop-button-on-click)]
    (progress-bar)
    [:div {:style {:margin "1%"}}
+    [:p (repl)]
+    ;(summary)
     (history-table)]])
+    
 
 (rd/render [applet] (. js/document (getElementById "app")))  
 

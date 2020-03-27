@@ -11,7 +11,8 @@
                  [org.clojure/core.async  "0.4.500"]
                  [reagent "0.10.0"]
                  [reagent-utils "0.3.3"]
-                 [cljs-bach "0.3.0"]]
+                 [cljs-bach "0.3.0"]
+                 [com.cognitect/transit-cljs "0.8.256"]]
 
   :plugins [[lein-figwheel "0.5.19"]
             [lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]]
