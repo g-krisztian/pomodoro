@@ -1,7 +1,7 @@
 (ns pomodoro.core
   (:require [reagent.core :as r]
             [reagent.dom :as rd]
-            [reagent.session :as rs]
+            [reagent.cookies :as rc]
             [pomodoro.audio :as audio]
             [pomodoro.time-format :as tf]))
 
@@ -40,12 +40,13 @@
   (swap! app-state merge {:paused-time (.getTime (js/Date.))}))
 
 (defn stop-button-on-click []
-  (rs/update-in! [:history]
-         conj {:task-name(:task-name @app-state) 
-               :lenght   (:lenght @app-state)
-               :start    (:start-time @app-state)
-               :key      (:key @app-state)
-               :duration (update-stop-time)})
+  (rc/set! :history
+           (conj (rc/get :history)
+                 {:task-name(:task-name @app-state) 
+                  :lenght   (:lenght @app-state)
+                  :start    (:start-time @app-state)
+                  :key      (:key @app-state)
+                  :duration (update-stop-time)}))
   (reset-task)
   (swap! app-state update-in [:key] inc))
 
@@ -54,7 +55,7 @@
   (start-button-on-click nil))
 
 (defn delete-history-on-click []
-  (rs/swap! merge {:history nil}))
+  (rc/remove! :history))
 
 (defn common-button-style [value callback]
   {:type     :button
@@ -73,7 +74,7 @@
                  {:disabled (key @app-state)})])
 
 (defn history-table []
-  (when (rs/get :history)
+  (when (rc/contains-key? :history)
     [:table {:class "table table-striped table-bordered"}
      [:thead {:class "thead-dark"}
       [:tr
@@ -83,7 +84,7 @@
        [:th "Real duration"]
        [:th (button-element :active "Delete history" delete-history-on-click)]]]
      [:tbody
-      (for [task (rs/get :history)] 
+      (for [task (rc/get :history)] 
         [:tr {:key (:key task)}
          [:td (:task-name task)]
          [:td (tf/render-time (tf/correct-time (:start task)))]
@@ -156,7 +157,7 @@
    (progress-bar)
    [:div {:style {:margin "1%"}}
     (history-table)
-    [:p (rs/get :history)]]])
+    [:p (rc/get :history)]]])
 
 (rd/render [applet] (. js/document (getElementById "app")))  
 
