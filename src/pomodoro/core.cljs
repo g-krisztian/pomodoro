@@ -3,28 +3,24 @@
             [reagent.dom :as rd]
             [reagent.cookies :as rc]
             [pomodoro.audio :as audio]
-            [pomodoro.time-format :as tf]
-            [cognitect.transit :as t]))
+            [pomodoro.time-format :as tf]))
 
 (enable-console-print!)
+
+(defn get-last-key []
+  (inc (apply max (map :key (rc/get :history)))))
 
 (defonce app-state (r/atom {:lenght    5
                             :task-name "Default"
                             :now       (.getTime (js/Date.))
-                            :key       0}))
-(defn get-last-key []
-   (-> rc/get
-       :history
-       (map :key)
-       max) )
+                            :key       (or (get-last-key) 0)}))
 
 (defn reset-task []
   (swap! app-state merge {:paused  true
                           :active  false
                           :stop    true
                           :resume  true
-                          :elapsed 0
-                          :key (get-last-key)}))
+                          :elapsed 0}))
 
 (defn update-stop-time []
   (let [now (.getTime (js/Date.))
@@ -133,8 +129,9 @@
        (map (fn [[k v]] (let [task-name k
                               lenght (reduce + (for [d v] (:duration d)))
                               key (str k lenght)]
-                          {:task-name task-name :lenght lenght
-                           :key key})))))
+                          {:task-name task-name
+                           :lenght    lenght
+                           :key       key})))))
 
 
 (defn change-view [view]
@@ -170,44 +167,43 @@
   (when (rc/contains-key? :history)
     [:div#summary
      [:table {:class "table table-striped table-bordered" :id "summary"}
-     [:thead {:class "thead-dark"}
-      [:tr
-       [:th "Task name"]
-       [:th "Spent time"]
-       [:th ""]]]
-     [:tbody
-      (for [task (into [] (summ-usage))]
-        [:tr {:key (:key task)}
-         [:td (:task-name task)]
-         [:td (tf/render-time (:lenght task))]
-         [:td (button-element :active "Restart" #(restart-button-on-click (update-in task [:lenght] quot 1000)))]])]]]))
+      [:thead {:class "thead-dark"}
+       [:tr
+        [:th "Task name"]
+        [:th "Spent time"]
+        [:th ""]]]
+      [:tbody
+       (for [task (into [] (summ-usage))]
+         [:tr {:key (:key task)}
+          [:td (:task-name task)]
+          [:td (tf/render-time (:lenght task))]
+          [:td (button-element :active "Restart" #(restart-button-on-click (update-in task [:lenght] quot 1000)))]])]]]))
 
 (defn choose-view []
-   [:div {:class "dropdown" :style {:margin "1%"}}
-    [:input {:type "button"
-             :class "btn btn-secondary dropdown-toggle"
-             :id "dropdownMenuButton"
-           :data-toggle "dropdown"
-           :aria-haspopup true
-           :aria-expanded= false
-           :value "Choose view"}]
-    [:div {:class "dropdown-menu"
-           :aria-labelledby "dropdownMenuButton"}
-     (dropdown-item :summary "Summary")
-     (dropdown-item :history "History")]])
+  [:div {:class "dropdown" :style {:margin "1%"}}
+   [:input {:type           "button"
+            :class          "btn btn-secondary dropdown-toggle"
+            :id             "dropdownMenuButton"
+            :data-toggle    "dropdown"
+            :aria-haspopup  true
+            :aria-expanded= false
+            :value          "Choose view"}]
+   [:div {:class           "dropdown-menu"
+          :aria-labelledby "dropdownMenuButton"}
+    (dropdown-item :summary "Summary")
+    (dropdown-item :history "History")]])
 
 (reset-task)
 
 (defonce ticker
          (js/setInterval main-loop 1000))
 
-;(set! js/document.title "1")
-
 (defn applet []
   (set! js/document.title (tf/render-time (* 1000 (:elapsed @app-state))))
   [:div#app {:style {:margin "1%"}}
    [:h1 "Pomodoro app"]
    [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @app-state))))]
+   [:p (str @app-state)]
    [:div {:style {:margin "1%"}}
     (text-input :task-name)
     (number-input :lenght)]
@@ -217,17 +213,12 @@
     (hideable-button-element :resume "Resume timer" pause-button-on-click)
     (hideable-button-element :stop "Stop timer" stop-button-on-click)]
    (progress-bar)
-   [:p   (apply max (map :key (rc/get :history)
-         ;map :key
-         ;max
-         ))]
    (choose-view)
    [:div {:style {:margin "1%"}}
     (condp = (:view @app-state)
       :summary (summary)
       :history (history-table)
-      [:p])
-      ]])
+      [:p])]])
 
 
 (rd/render [applet] (. js/document (getElementById "app")))  
