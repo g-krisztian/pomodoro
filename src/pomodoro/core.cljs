@@ -12,13 +12,19 @@
                             :task-name "Default"
                             :now       (.getTime (js/Date.))
                             :key       0}))
+(defn get-last-key []
+   (-> rc/get
+       :history
+       (map :key)
+       max) )
 
 (defn reset-task []
   (swap! app-state merge {:paused  true
                           :active  false
                           :stop    true
                           :resume  true
-                          :elapsed 0}))
+                          :elapsed 0
+                          :key (get-last-key)}))
 
 (defn update-stop-time []
   (let [now (.getTime (js/Date.))
@@ -133,7 +139,7 @@
 
 (defn change-view [view]
   (swap! app-state merge {:view ""})
-  (js/setTimeout (swap! app-state merge {:view view}) 100))
+  (swap! app-state merge {:view view}))
 
 (defn dropdown-item [view label]
   [:a {:type     "button"
@@ -142,8 +148,8 @@
   )
 (defn history-table []
   (when (rc/contains-key? :history)
-    [:div
-     [:table {:class "table table-striped table-bordered"}
+    [:div#history
+     [:table {:class "table table-striped table-bordered" :id "history"}
       [:thead {:class "thead-dark"}
        [:tr
         [:th "Task name"]
@@ -162,7 +168,8 @@
 
 (defn summary []
   (when (rc/contains-key? :history)
-    [:table {:class "table table-striped table-bordered"}
+    [:div#summary
+     [:table {:class "table table-striped table-bordered" :id "summary"}
      [:thead {:class "thead-dark"}
       [:tr
        [:th "Task name"]
@@ -173,10 +180,10 @@
         [:tr {:key (:key task)}
          [:td (:task-name task)]
          [:td (tf/render-time (:lenght task))]
-         [:td (button-element :active "Restart" #(restart-button-on-click (update-in task [:lenght] quot 1000)))]])]]))
+         [:td (button-element :active "Restart" #(restart-button-on-click (update-in task [:lenght] quot 1000)))]])]]]))
 
 (defn choose-view []
-   [:div {:class "dropdown"}
+   [:div {:class "dropdown" :style {:margin "1%"}}
     [:input {:type "button"
              :class "btn btn-secondary dropdown-toggle"
              :id "dropdownMenuButton"
@@ -210,8 +217,12 @@
     (hideable-button-element :resume "Resume timer" pause-button-on-click)
     (hideable-button-element :stop "Stop timer" stop-button-on-click)]
    (progress-bar)
+   [:p   (apply max (map :key (rc/get :history)
+         ;map :key
+         ;max
+         ))]
+   (choose-view)
    [:div {:style {:margin "1%"}}
-    (choose-view)
     (condp = (:view @app-state)
       :summary (summary)
       :history (history-table)
