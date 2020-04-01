@@ -153,7 +153,8 @@
        [:thead {:class "thead-dark"}
         [:tr
          [:th "Task name"]
-         [:th "Spent time"]]]
+         [:th "Spent time"]
+         [:th ""]]]
        [:tbody
         (for [task (into [] (summ-usage))] 
          [:tr {:key (:key task)}
@@ -165,8 +166,11 @@
 
 (defonce ticker
   (js/setInterval main-loop 1000))
-  
+
+;(set! js/document.title "1")
+
 (defn applet []
+  (set! js/document.title (tf/render-time (* 1000 (:elapsed @app-state))))
   [:div#app {:style {:margin "1%"}}
    [:h1 "Pomodoro app"]
    [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @app-state))))]
@@ -180,7 +184,9 @@
     (hideable-button-element :stop "Stop timer" stop-button-on-click)]
    (progress-bar)
    [:div {:style {:margin "1%"}}
-    [:p (summ-usage)]
+    ;[:p (summ-usage)]
+    ;[:p (str @app-state)]
+    ;[:p (rc/get :history)]
     (summary)
     (history-table)]])
     
