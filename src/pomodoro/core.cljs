@@ -13,7 +13,8 @@
 (defonce app-state (r/atom {:lenght    5
                             :task-name "Default"
                             :now       (.getTime (js/Date.))
-                            :key       (or (get-last-key) 0)}))
+                            :key       (or (get-last-key) 0)
+                            :view      :single-run}))
 
 (defn reset-task []
   (swap! app-state merge {:paused  true
@@ -133,19 +134,17 @@
                            :lenght    lenght
                            :key       key})))))
 
-
-(defn change-view [view]
-  (swap! app-state merge {:view ""})
-  (swap! app-state merge {:view view}))
-
 (defn dropdown-item [view label]
   [:a {:type     "button"
        :class    "dropdown-item"
-       :on-click #(change-view view)} label]
+       :on-click #(swap! app-state merge {:view view})}
+   label]
   )
+
 (defn history-table []
-  (when (rc/contains-key? :history)
-    [:div#history
+  [:div#history
+   [:h3 "History"]
+   (when (rc/contains-key? :history)
      [:table {:class "table table-striped table-bordered" :id "history"}
       [:thead {:class "thead-dark"}
        [:tr
@@ -161,11 +160,12 @@
           [:td (tf/render-time (tf/correct-time (:start task)))]
           [:td (tf/render-time (* 1000 (:lenght task)))]
           [:td (tf/render-time (:duration task))]
-          [:td (button-element :active "Restart" #(restart-button-on-click task))]])]]]))
+          [:td (button-element :active "Restart" #(restart-button-on-click task))]])]])])
 
 (defn summary []
-  (when (rc/contains-key? :history)
-    [:div#summary
+  [:div#summary
+   [:h3 "Summary"]
+   (when (rc/contains-key? :history)
      [:table {:class "table table-striped table-bordered" :id "summary"}
       [:thead {:class "thead-dark"}
        [:tr
@@ -177,7 +177,21 @@
          [:tr {:key (:key task)}
           [:td (:task-name task)]
           [:td (tf/render-time (:lenght task))]
-          [:td (button-element :active "Restart" #(restart-button-on-click (update-in task [:lenght] quot 1000)))]])]]]))
+          [:td (button-element :active "Restart" #(restart-button-on-click (update-in task [:lenght] quot 1000)))]])]])])
+
+(defn single-run []
+  (when (= :single-run (:view @app-state))
+    [:div#single-run
+     [:div {:style {:margin "1%"}}
+      [:h3 "Single run"]
+      (text-input :task-name)
+      (number-input :lenght)]
+     [:div {:class "btn-group" :style {:margin "1%"}}
+      (hideable-button-element :active "Start timer" start-button-on-click)
+      (hideable-button-element :paused "Pause timer" pause-button-on-click)
+      (hideable-button-element :resume "Resume timer" pause-button-on-click)
+      (hideable-button-element :stop "Stop timer" stop-button-on-click)]
+     (progress-bar)]))
 
 (defn choose-view []
   [:div {:class "dropdown" :style {:margin "1%"}}
@@ -190,6 +204,7 @@
             :value          "Choose view"}]
    [:div {:class           "dropdown-menu"
           :aria-labelledby "dropdownMenuButton"}
+    (dropdown-item :single-run "Single run")
     (dropdown-item :summary "Summary")
     (dropdown-item :history "History")]])
 
@@ -204,21 +219,12 @@
    [:h1 "Pomodoro app"]
    [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @app-state))))]
    [:p (str @app-state)]
-   [:div {:style {:margin "1%"}}
-    (text-input :task-name)
-    (number-input :lenght)]
-   [:div {:class "btn-group" :style {:margin "1%"}}
-    (hideable-button-element :active "Start timer" start-button-on-click)
-    (hideable-button-element :paused "Pause timer" pause-button-on-click)
-    (hideable-button-element :resume "Resume timer" pause-button-on-click)
-    (hideable-button-element :stop "Stop timer" stop-button-on-click)]
-   (progress-bar)
    (choose-view)
    [:div {:style {:margin "1%"}}
     (condp = (:view @app-state)
       :summary (summary)
       :history (history-table)
-      [:p])]])
+      (single-run))]])
 
 
 (rd/render [applet] (. js/document (getElementById "app")))  
