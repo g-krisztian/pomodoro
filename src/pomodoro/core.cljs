@@ -133,16 +133,25 @@
                           {:task-name task-name
                            :lenght    lenght
                            :key       key})))))
-
-(defn dropdown-item [view label]
-  [:a {:type     "button"
-       :class    "dropdown-item"
-       :on-click #(swap! app-state merge {:view view})}
-   label]
-  )
+(defn summary []
+  [:div#summary {:style {:margin "1%"}}
+   [:h3 "Summary"]
+   (when (rc/contains-key? :history)
+     [:table {:class "table table-striped table-bordered" :id "summary"}
+      [:thead {:class "thead-dark"}
+       [:tr
+        [:th "Task name"]
+        [:th "Spent time"]
+        [:th ""]]]
+      [:tbody
+       (for [task (into [] (summ-usage))]
+         [:tr {:key (:key task)}
+          [:td (:task-name task)]
+          [:td (tf/render-time (:lenght task))]
+          [:td (button-element :active "Restart" #(restart-button-on-click (update-in task [:lenght] quot 1000)))]])]])])
 
 (defn history-table []
-  [:div#history
+  [:div#history {:style {:margin "1%"}}
    [:h3 "History"]
    (when (rc/contains-key? :history)
      [:table {:class "table table-striped table-bordered" :id "history"}
@@ -162,23 +171,6 @@
           [:td (tf/render-time (:duration task))]
           [:td (button-element :active "Restart" #(restart-button-on-click task))]])]])])
 
-(defn summary []
-  [:div#summary
-   [:h3 "Summary"]
-   (when (rc/contains-key? :history)
-     [:table {:class "table table-striped table-bordered" :id "summary"}
-      [:thead {:class "thead-dark"}
-       [:tr
-        [:th "Task name"]
-        [:th "Spent time"]
-        [:th ""]]]
-      [:tbody
-       (for [task (into [] (summ-usage))]
-         [:tr {:key (:key task)}
-          [:td (:task-name task)]
-          [:td (tf/render-time (:lenght task))]
-          [:td (button-element :active "Restart" #(restart-button-on-click (update-in task [:lenght] quot 1000)))]])]])])
-
 (defn single-run []
   (when (= :single-run (:view @app-state))
     [:div#single-run
@@ -193,6 +185,20 @@
       (hideable-button-element :stop "Stop timer" stop-button-on-click)]
      (progress-bar)]))
 
+(defn planning []
+  [:div
+   [:h3 "Planning a batch run"]
+   (text-input :task-name)
+   (number-input :lenght)
+   (button-element :add "Add" #())])
+
+(defn dropdown-item [view label]
+  [:a {:type     "button"
+       :class    "dropdown-item"
+       :on-click #(swap! app-state merge {:view view})}
+   label]
+  )
+
 (defn choose-view []
   [:div {:class "dropdown" :style {:margin "1%"}}
    [:input {:type           "button"
@@ -206,25 +212,31 @@
           :aria-labelledby "dropdownMenuButton"}
     (dropdown-item :single-run "Single run")
     (dropdown-item :summary "Summary")
-    (dropdown-item :history "History")]])
+    (dropdown-item :history "History")
+    (dropdown-item :planning "Planning view")]])
 
 (reset-task)
 
 (defonce ticker
          (js/setInterval main-loop 1000))
 
+(def titles {:summary "Summary"
+             :history "History"
+             :planning "Planning"
+             :single-run "Single run"})
+
 (defn applet []
-  (set! js/document.title (tf/render-time (* 1000 (:elapsed @app-state))))
+  (set! js/document.title ((:view @app-state) titles))
   [:div#app {:style {:margin "1%"}}
    [:h1 "Pomodoro app"]
    [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @app-state))))]
    [:p (str @app-state)]
    (choose-view)
-   [:div {:style {:margin "1%"}}
-    (condp = (:view @app-state)
-      :summary (summary)
-      :history (history-table)
-      (single-run))]])
+   (condp = (:view @app-state)
+     :summary (summary)
+     :history (history-table)
+     :planning (planning)
+     (single-run))])
 
 
 (rd/render [applet] (. js/document (getElementById "app")))  
