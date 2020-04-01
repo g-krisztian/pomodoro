@@ -21,9 +21,9 @@
                           :elapsed 0}))
 
 (defn update-stop-time []
-  (let [now             (.getTime (js/Date.))
-        start           (:start-time @app-state)
-        real-duration   (- now start)
+  (let [now (.getTime (js/Date.))
+        start (:start-time @app-state)
+        real-duration (- now start)
         paused-duration (- (:paused-time @app-state) start)]
     (if (:paused @app-state false) paused-duration real-duration)))
 
@@ -33,7 +33,6 @@
                           :paused     false
                           :active     true
                           :stop       false}))
-  
 
 (defn pause-button-on-click []
   (swap! app-state update-in [:paused] not)
@@ -43,11 +42,11 @@
 (defn stop-button-on-click []
   (rc/set! :history
            (conj (rc/get :history)
-                 {:task-name(:task-name @app-state) 
-                  :lenght   (:lenght @app-state)
-                  :start    (:start-time @app-state)
-                  :key      (:key @app-state)
-                  :duration (update-stop-time)}))
+                 {:task-name (:task-name @app-state)
+                  :lenght    (:lenght @app-state)
+                  :start     (:start-time @app-state)
+                  :key       (:key @app-state)
+                  :duration  (update-stop-time)}))
   (reset-task)
   (swap! app-state update-in [:key] inc))
 
@@ -65,33 +64,14 @@
    :on-click callback})
 
 (defn hideable-button-element [key value callback]
-  [:input 
+  [:input
    (merge
-    (common-button-style value callback)
-    {:style (merge {:width "150px"} (when (key @app-state) {:display "none"}))})])
-                                                 
+     (common-button-style value callback)
+     {:style (merge {:width "150px"} (when (key @app-state) {:display "none"}))})])
+
 (defn button-element [key value callback]
   [:input (merge (common-button-style value callback)
                  {:disabled (key @app-state)})])
-
-(defn history-table []
-  (when (rc/contains-key? :history)
-    [:table {:class "table table-striped table-bordered"}
-     [:thead {:class "thead-dark"}
-      [:tr
-       [:th "Task name"]
-       [:th "Start time"]
-       [:th "Planned duration"]
-       [:th "Real duration"]
-       [:th (button-element :active "Delete history" delete-history-on-click)]]]
-     [:tbody
-      (for [task (rc/get :history)] 
-        [:tr {:key (:key task)}
-         [:td (:task-name task)]
-         [:td (tf/render-time (tf/correct-time (:start task)))]
-         [:td (tf/render-time (* 1000 (:lenght task)))]
-         [:td (tf/render-time (:duration task))]
-         [:td (button-element :active "Restart" #(restart-button-on-click task))]])]]))
 
 (defn swap-value [key e]
   (swap! app-state merge [key (-> e .-target .-value)]))
@@ -125,8 +105,8 @@
 
 
 (defn progress-bar []
-  (let [lenght   (:lenght @app-state)
-        elapsed  (:elapsed @app-state)
+  (let [lenght (:lenght @app-state)
+        elapsed (:elapsed @app-state)
         progress (* 100 (/ elapsed lenght))]
     [:div {:class  "progress"
            :margin "0px"
@@ -144,28 +124,75 @@
   (->> (rc/get :history)
        (map #(select-keys % [:task-name :duration]))
        (group-by :task-name)
-       (map (fn [[k v]] {:task-name k :lenght  (reduce + (for [d v] (:duration d)))}))))
+       (map (fn [[k v]] (let [task-name k
+                              lenght (reduce + (for [d v] (:duration d)))
+                              key (str k lenght)]
+                          {:task-name task-name :lenght lenght
+                           :key key})))))
+
+
+(defn change-view [view]
+  (swap! app-state merge {:view ""})
+  (js/setTimeout (swap! app-state merge {:view view}) 100))
+
+(defn dropdown-item [view label]
+  [:a {:type     "button"
+       :class    "dropdown-item"
+       :on-click #(change-view view)} label]
+  )
+(defn history-table []
+  (when (rc/contains-key? :history)
+    [:div
+     [:table {:class "table table-striped table-bordered"}
+      [:thead {:class "thead-dark"}
+       [:tr
+        [:th "Task name"]
+        [:th "Start time"]
+        [:th "Planned duration"]
+        [:th "Real duration"]
+        [:th (button-element :active "Delete history" delete-history-on-click)]]]
+      [:tbody
+       (for [task (rc/get :history)]
+         [:tr {:key (:key task)}
+          [:td (:task-name task)]
+          [:td (tf/render-time (tf/correct-time (:start task)))]
+          [:td (tf/render-time (* 1000 (:lenght task)))]
+          [:td (tf/render-time (:duration task))]
+          [:td (button-element :active "Restart" #(restart-button-on-click task))]])]]]))
 
 (defn summary []
   (when (rc/contains-key? :history)
-    (let [table (rc/get :history)]
-      [:table {:class "table table-striped table-bordered"}
-       [:thead {:class "thead-dark"}
-        [:tr
-         [:th "Task name"]
-         [:th "Spent time"]
-         [:th ""]]]
-       [:tbody
-        (for [task (into [] (summ-usage))] 
-         [:tr {:key (:key task)}
-          [:td (:task-name task)]
-          [:td (tf/render-time (:lenght task))]
-          [:td (button-element :active "Restart" #(restart-button-on-click (update-in task [:lenght] quot 1000)))]])]])))
+    [:table {:class "table table-striped table-bordered"}
+     [:thead {:class "thead-dark"}
+      [:tr
+       [:th "Task name"]
+       [:th "Spent time"]
+       [:th ""]]]
+     [:tbody
+      (for [task (into [] (summ-usage))]
+        [:tr {:key (:key task)}
+         [:td (:task-name task)]
+         [:td (tf/render-time (:lenght task))]
+         [:td (button-element :active "Restart" #(restart-button-on-click (update-in task [:lenght] quot 1000)))]])]]))
+
+(defn choose-view []
+   [:div {:class "dropdown"}
+    [:input {:type "button"
+             :class "btn btn-secondary dropdown-toggle"
+             :id "dropdownMenuButton"
+           :data-toggle "dropdown"
+           :aria-haspopup true
+           :aria-expanded= false
+           :value "Choose view"}]
+    [:div {:class "dropdown-menu"
+           :aria-labelledby "dropdownMenuButton"}
+     (dropdown-item :summary "Summary")
+     (dropdown-item :history "History")]])
 
 (reset-task)
 
 (defonce ticker
-  (js/setInterval main-loop 1000))
+         (js/setInterval main-loop 1000))
 
 ;(set! js/document.title "1")
 
@@ -184,12 +211,13 @@
     (hideable-button-element :stop "Stop timer" stop-button-on-click)]
    (progress-bar)
    [:div {:style {:margin "1%"}}
-    ;[:p (summ-usage)]
-    ;[:p (str @app-state)]
-    ;[:p (rc/get :history)]
-    (summary)
-    (history-table)]])
-    
+    (choose-view)
+    (condp = (:view @app-state)
+      :summary (summary)
+      :history (history-table)
+      [:p])
+      ]])
+
 
 (rd/render [applet] (. js/document (getElementById "app")))  
 
