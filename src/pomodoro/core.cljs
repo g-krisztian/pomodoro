@@ -122,6 +122,7 @@
             :data-toggle   "dropdown"
             :aria-haspopup true
             :aria-expanded false
+            :disabled (:active @app-state)
             :value         value}]
    [:div {:class           "dropdown-menu"
           :aria-labelledby "dropdownMenuButton"
@@ -230,6 +231,13 @@
           [:td (tf/render-time (:duration task))]
           [:td (button-element :active "Restart" #(restart-button-on-click task))]])]])])
 
+(defn control-buttons []
+  [:div {:class "btn-group" :style {:margin "1%"}}
+   (hideable-button-element :active "Start timer" start-button-on-click)
+   (hideable-button-element :paused "Pause timer" pause-button-on-click)
+   (hideable-button-element :resume "Resume timer" pause-button-on-click)
+   (hideable-button-element :stop "Stop timer" stop-button-on-click)])
+
 (defn single-run []
   (when (= :single-run (:view @app-state))
     [:div#single-run
@@ -237,11 +245,7 @@
       [:h3 "Single run"]
       (text-input :task-name)
       (input-length :length)]
-     [:div {:class "btn-group" :style {:margin "1%"}}
-      (hideable-button-element :active "Start timer" start-button-on-click)
-      (hideable-button-element :paused "Pause timer" pause-button-on-click)
-      (hideable-button-element :resume "Resume timer" pause-button-on-click)
-      (hideable-button-element :stop "Stop timer" stop-button-on-click)]
+     (control-buttons)
      (progress-bar)]))
 
 (defn planning []
@@ -249,7 +253,9 @@
    [:h3 "Planning a batch run"]
    (text-input :task-name)
    (input-length :length)
-   (button-element :add "Add" #())])
+   [:div (button-element :add "Add" #())]
+   (control-buttons)
+   (progress-bar)])
 
 
 
