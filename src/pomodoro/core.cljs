@@ -8,13 +8,21 @@
 (enable-console-print!)
 
 (defn get-last-key []
-  (inc (apply max (map :key (rc/get :history)))))
+  (inc (apply max (map :key (rc/get :history {:key 0} )))))
 
-(defonce app-state (r/atom {:lenght    5
+(defonce app-state (r/atom {:length    5
                             :task-name "Default"
                             :now       (.getTime (js/Date.))
-                            :key       (or (get-last-key) 0)
-                            :view      :single-run}))
+                            :key       (get-last-key)
+                            :view      :single-run
+                            :unit (rc/get :unit :sec)}))
+
+(def titles {:summary    "Summary"
+             :history    "History"
+             :planning   "Planning"
+             :single-run "Single run"
+             :sec "Second"
+             :min "Minute"})
 
 (defn reset-task []
   (swap! app-state merge {:paused  true
@@ -35,7 +43,10 @@
                           :elapsed    0
                           :paused     false
                           :active     true
-                          :stop       false}))
+                          :stop       false
+                          :length-in-seconds (if (= :min (:unit @app-state))
+                                               (* 60 (:length @app-state))
+                                               (:length @app-state))}))
 
 (defn pause-button-on-click []
   (swap! app-state update-in [:paused] not)
@@ -46,7 +57,7 @@
   (rc/set! :history
            (conj (rc/get :history)
                  {:task-name (:task-name @app-state)
-                  :lenght    (:lenght @app-state)
+                  :length    (:length-in-seconds @app-state)
                   :start     (:start-time @app-state)
                   :key       (:key @app-state)
                   :duration  (update-stop-time)}))
@@ -54,7 +65,7 @@
   (swap! app-state update-in [:key] inc))
 
 (defn restart-button-on-click [task]
-  (swap! app-state merge (select-keys task [:task-name :lenght]))
+  (swap! app-state merge (select-keys task [:task-name :length]))
   (start-button-on-click nil))
 
 (defn delete-history-on-click []
@@ -77,24 +88,73 @@
                  {:disabled (key @app-state)})])
 
 (defn swap-value [key e]
-  (swap! app-state merge [key (-> e .-target .-value)]))
+  (swap! app-state merge {key (-> e .-target .-value)}))
 
 (defn start-with-enter [e]
   (when (= 13 (.-charCode e)) (start-button-on-click e)))
 
 (defn text-input [key]
-  [:input {:type         "text"
-           :value        (key @app-state)
-           :on-change    #(swap-value key %)
-           :disabled     (:active @app-state)
-           :on-key-press start-with-enter}])
+  [:div {:classs "input-group"}
+   [:div {:class "input-group-prepend"}
+    [:span {:class "input-group-text" :style {:min-width "150px"}} "Task name:"]
+    [:input {:type             "text"
+             :class            "form-control"
+             :value            (key @app-state)
+             :on-change        #(swap-value key %)
+             :disabled         (:active @app-state)
+             :on-key-press     start-with-enter
+             :aria-label       "TaskName"
+             :aria-describedby "addon-wrapping"}]]
+   ])
 
-(defn number-input [key]
-  [:input {:type         "number"
-           :value        (key @app-state)
-           :on-change    #(swap-value key %)
-           :disabled     (:active @app-state)
-           :on-key-press start-with-enter}])
+(defn dropdown-item [label action]
+  [:a {:type     "button"
+       :class    "dropdown-item"
+       :on-click action
+       :key label}
+   label]
+  )
+
+(defn dropdown [value & args]
+  [:div {:class "dropdown" }
+   [:input {:type          "button"
+            :class         "btn btn-secondary dropdown-toggle"
+            :data-toggle   "dropdown"
+            :aria-haspopup true
+            :aria-expanded false
+            :value         value}]
+   [:div {:class           "dropdown-menu"
+          :aria-labelledby "dropdownMenuButton"
+          }
+    args]])
+
+(defn choose-view []
+  (dropdown (titles (:view @app-state))
+            (dropdown-item "Single run" #(swap! app-state merge {:view :single-run}))
+            (dropdown-item "Summary" #(swap! app-state merge {:view :summary}))
+            (dropdown-item "History" #(swap! app-state merge {:view :history}))
+            (dropdown-item "Planning view" #(swap! app-state merge {:view :planning}))))
+
+(defn swap-unit [m]
+  (println-str m)
+  (swap! app-state merge {:unit m})
+  (rc/set! :unit m)
+  )
+
+
+
+(defn input-length [key]
+  [:div {:classs "input-group flex-nowrap"}
+   [:div {:class "input-group-prepend"}
+    [:span {:class "input-group-text" :id "addon-wrapping" :style {:min-width "150px"}} "Task length:"]
+    [:input {:type      "number"
+             :value     (key @app-state)
+             :on-change #(swap-value key %)
+             :disabled  (:active @app-state)}]
+    [:span (dropdown (titles (:unit @app-state))
+              (dropdown-item "Second" #(swap-unit :sec))
+              (dropdown-item "Minute" #(swap-unit :min))
+              )]]])
 
 (defn finish []
   (stop-button-on-click)
@@ -104,11 +164,11 @@
   (swap! app-state merge [:now (.getTime (js/Date.))])
   (when-not (:paused @app-state)
     (swap! app-state update-in [:elapsed] inc)
-    (when (> (:elapsed @app-state) (:lenght @app-state)) (finish))))
+    (when (> (:elapsed @app-state) (:length-in-seconds @app-state)) (finish))))
 
 
 (defn progress-bar []
-  (let [lenght (:lenght @app-state)
+  (let [lenght (:length-in-seconds @app-state)
         elapsed (:elapsed @app-state)
         progress (* 100 (/ elapsed lenght))]
     [:div {:class  "progress"
@@ -122,7 +182,6 @@
             :aria-valuenow progress}
       (tf/render-time (* 1000 elapsed))]]))
 
-
 (defn summ-usage []
   (->> (rc/get :history)
        (map #(select-keys % [:task-name :duration]))
@@ -131,7 +190,7 @@
                               lenght (reduce + (for [d v] (:duration d)))
                               key (str k lenght)]
                           {:task-name task-name
-                           :lenght    lenght
+                           :length    lenght
                            :key       key})))))
 (defn summary []
   [:div#summary {:style {:margin "1%"}}
@@ -147,8 +206,8 @@
        (for [task (into [] (summ-usage))]
          [:tr {:key (:key task)}
           [:td (:task-name task)]
-          [:td (tf/render-time (:lenght task))]
-          [:td (button-element :active "Restart" #(restart-button-on-click (update-in task [:lenght] quot 1000)))]])]])])
+          [:td (tf/render-time (:length task))]
+          [:td (button-element :active "Restart" #(restart-button-on-click (update-in task [:length] quot 1000)))]])]])])
 
 (defn history-table []
   [:div#history {:style {:margin "1%"}}
@@ -167,7 +226,7 @@
          [:tr {:key (:key task)}
           [:td (:task-name task)]
           [:td (tf/render-time (tf/correct-time (:start task)))]
-          [:td (tf/render-time (* 1000 (:lenght task)))]
+          [:td (tf/render-time (* 1000 (:length task)))]
           [:td (tf/render-time (:duration task))]
           [:td (button-element :active "Restart" #(restart-button-on-click task))]])]])])
 
@@ -177,7 +236,7 @@
      [:div {:style {:margin "1%"}}
       [:h3 "Single run"]
       (text-input :task-name)
-      (number-input :lenght)]
+      (input-length :length)]
      [:div {:class "btn-group" :style {:margin "1%"}}
       (hideable-button-element :active "Start timer" start-button-on-click)
       (hideable-button-element :paused "Pause timer" pause-button-on-click)
@@ -189,41 +248,16 @@
   [:div
    [:h3 "Planning a batch run"]
    (text-input :task-name)
-   (number-input :lenght)
+   (input-length :length)
    (button-element :add "Add" #())])
 
-(defn dropdown-item [view label]
-  [:a {:type     "button"
-       :class    "dropdown-item"
-       :on-click #(swap! app-state merge {:view view})}
-   label]
-  )
 
-(defn choose-view []
-  [:div {:class "dropdown" :style {:margin "1%"}}
-   [:input {:type           "button"
-            :class          "btn btn-secondary dropdown-toggle"
-            :id             "dropdownMenuButton"
-            :data-toggle    "dropdown"
-            :aria-haspopup  true
-            :aria-expanded= false
-            :value          "Choose view"}]
-   [:div {:class           "dropdown-menu"
-          :aria-labelledby "dropdownMenuButton"}
-    (dropdown-item :single-run "Single run")
-    (dropdown-item :summary "Summary")
-    (dropdown-item :history "History")
-    (dropdown-item :planning "Planning view")]])
+
 
 (reset-task)
 
 (defonce ticker
          (js/setInterval main-loop 1000))
-
-(def titles {:summary "Summary"
-             :history "History"
-             :planning "Planning"
-             :single-run "Single run"})
 
 (defn applet []
   (set! js/document.title ((:view @app-state) titles))
