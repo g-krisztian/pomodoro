@@ -8,21 +8,21 @@
 (enable-console-print!)
 
 (defn get-last-key []
-  (inc (apply max (map :key (rc/get :history {:key 0} )))))
+  (inc (apply max (map :key (rc/get :history {:key 0})))))
 
 (defonce app-state (r/atom {:length    5
                             :task-name "Default"
                             :now       (.getTime (js/Date.))
                             :key       (get-last-key)
                             :view      :single-run
-                            :unit (rc/get :unit :sec)}))
+                            :unit      (rc/get :unit :sec)}))
 
-(def dictionary {:summary "Summary"
-             :history     "History"
-             :planning    "Planning"
-             :single-run  "Single run"
-             :sec         "Second"
-             :min         "Minute"})
+(def dictionary {:summary    "Summary"
+                 :history    "History"
+                 :planning   "Planning"
+                 :single-run "Single run"
+                 :sec        "Second"
+                 :min        "Minute"})
 
 (defn reset-task []
   (swap! app-state merge {:paused  true
@@ -39,11 +39,11 @@
     (if (:paused @app-state false) paused-duration real-duration)))
 
 (defn start-button-on-click [e]
-  (swap! app-state merge {:start-time (.getTime (js/Date.))
-                          :elapsed    0
-                          :paused     false
-                          :active     true
-                          :stop       false
+  (swap! app-state merge {:start-time        (.getTime (js/Date.))
+                          :elapsed           0
+                          :paused            false
+                          :active            true
+                          :stop              false
                           :length-in-seconds (if (= :min (:unit @app-state))
                                                (* 60 (:length @app-state))
                                                (:length @app-state))}))
@@ -93,7 +93,7 @@
 (defn start-with-enter [e]
   (when (= 13 (.-charCode e)) (start-button-on-click e)))
 
-(defn text-input [key]
+(defn text-input [key enter-action]
   [:div {:classs "input-group"}
    [:div {:class "input-group-prepend"}
     [:span {:class "input-group-text" :style {:min-width "150px"}} "Task name:"]
@@ -102,7 +102,7 @@
              :value            (key @app-state)
              :on-change        #(swap-value key %)
              :disabled         (:active @app-state)
-             :on-key-press     start-with-enter
+             :on-key-press     enter-action
              :aria-label       "TaskName"
              :aria-describedby "addon-wrapping"}]]
    ])
@@ -111,51 +111,50 @@
   [:a {:type     "button"
        :class    "dropdown-item"
        :on-click action
-       :key label}
+       :key      label}
    label]
   )
 
 (defn dropdown [value & args]
-  [:div {:class "dropdown" }
+  [:div {:class "dropdown"}
    [:input {:type          "button"
             :class         "btn btn-secondary dropdown-toggle"
             :data-toggle   "dropdown"
             :aria-haspopup true
             :aria-expanded false
-            :disabled (:active @app-state)
+            :disabled      (:active @app-state)
             :value         value}]
    [:div {:class           "dropdown-menu"
           :aria-labelledby "dropdownMenuButton"
           }
     args]])
 
+(defn swap-view [view]
+  (swap! app-state merge {:view view}))
+
 (defn choose-view []
   (dropdown (dictionary (:view @app-state))
-            (dropdown-item "Single run" #(swap! app-state merge {:view :single-run}))
-            (dropdown-item "Summary" #(swap! app-state merge {:view :summary}))
-            (dropdown-item "History" #(swap! app-state merge {:view :history}))
-            (dropdown-item "Planning view" #(swap! app-state merge {:view :planning}))))
+            (dropdown-item "Single run" #(swap-view :single-run))
+            (dropdown-item "Summary" #(swap-view :summary))
+            (dropdown-item "History" #(swap-view :history))
+            (dropdown-item "Planning view" #(swap-view :planning))))
 
 (defn swap-unit [m]
-  (println-str m)
   (swap! app-state merge {:unit m})
-  (rc/set! :unit m)
-  )
+  (rc/set! :unit m))
 
-
-
-(defn input-length [key]
-  [:div {:classs "input-group flex-nowrap"}
-   [:div {:class "input-group-prepend"}
-    [:span {:class "input-group-text" :id "addon-wrapping" :style {:min-width "150px"}} "Task length:"]
-    [:input {:type      "number"
-             :value     (key @app-state)
-             :on-change #(swap-value key %)
-             :disabled  (:active @app-state)}]
-    [:span (dropdown (dictionary (:unit @app-state))
-              (dropdown-item "Second" #(swap-unit :sec))
-              (dropdown-item "Minute" #(swap-unit :min))
-              )]]])
+(defn input-length [key enter-action]
+  [:div {:class "input-group-prepend"}
+   [:span {:class "input-group-text" :id "addon-wrapping" :style {:min-width "150px"}} "Task length:"]
+   [:input {:type         "number"
+            :class        "form-control"
+            :value        (key @app-state)
+            :on-change    #(swap-value key %)
+            :on-key-press enter-action
+            :disabled     (:active @app-state)}]
+   [:span (dropdown (dictionary (:unit @app-state))
+                    (dropdown-item "Second" #(swap-unit :sec))
+                    (dropdown-item "Minute" #(swap-unit :min)))]])
 
 (defn finish []
   (stop-button-on-click)
@@ -243,16 +242,16 @@
     [:div#single-run
      [:div {:style {:margin "1%"}}
       [:h3 "Single run"]
-      (text-input :task-name)
-      (input-length :length)]
+      (text-input :task-name start-with-enter)
+      (input-length :length start-with-enter)]
      (control-buttons)
      (progress-bar)]))
 
 (defn planning []
   [:div
    [:h3 "Planning a batch run"]
-   (text-input :task-name)
-   (input-length :length)
+   (text-input :task-name #())
+   (input-length :length #())
    [:div (button-element :add "Add" #())]
    (control-buttons)
    (progress-bar)])
