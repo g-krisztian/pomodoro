@@ -225,24 +225,23 @@
 
 (defn control-buttons []
   [:div
-   [:div {:class "btn-group" }
+   [:div {:class "btn-group" :style {:margin-top "1%"}}
     (hideable-button-element :active "Start timer" start-button-on-click)
     (hideable-button-element :paused "Pause timer" pause-button-on-click)
     (hideable-button-element :resume "Resume timer" pause-button-on-click)
     (hideable-button-element :stop "Stop timer" stop-button-on-click)
     ]
-    [:div {:style {:margin "1%"}}
+    [:div {:style {:margin-top "1%"}}
      (progress-bar)]])
 
 (defn single-run []
   (when (= :single-run (:view @app-state))
     [:div#single-run
-     [:div {:style {:margin "1%"}}
+     [:div
       [:h3 "Single run"]
       (text-input :task-name #(start-with-enter % start-button-on-click))
       (input-length :length #(start-with-enter % start-button-on-click))]
-     (control-buttons)
-     (progress-bar)]))
+     (control-buttons)]))
 
 (defn plan-table []
   [:div#planning
@@ -262,19 +261,18 @@
           [:td (button-element :active "Remove" #(restart-button-on-click (update-in task [:length] quot 1000)))]])]])])
 
 (defn add-to-plan [task-name length]
-  (rc/set! :plan (cons {:task-name task-name :length (length-to-seconds (* 1000 length))} (rc/get :plan))))
+  (rc/set! :plan (cons {:task-name task-name :length (* 1000 length)} (rc/get :plan))))
 
 (defn planning []
   [:div
    (plan-table)
    (text-input :task-name #(start-with-enter % add-to-plan))
    (input-length :length #(start-with-enter % add-to-plan))
-   (button-element :add "Add task" #(add-to-plan (:task-name @app-state) (:length @app-state)))
+   (button-element :add "Add task" #(add-to-plan (:task-name @app-state) (length-to-seconds (:length @app-state))))
    (button-element :add-break "Add short break" #(add-to-plan "Short break" 300))
    (button-element :add-break "Add long break" #(add-to-plan "Long break" 900))
    [:p]
    (control-buttons)])
-
 
 (defn choose-view [label]
   (let [views [:single-run :summary :history :planning]]
@@ -282,7 +280,7 @@
      (dropdown (dictionary label)
                (for [view views]
                  (dropdown-item (dictionary view) #(swap-view view))))
-     (condp = (:view @app-state)
+     (condp = label
        :summary (summary)
        :history (history-table)
        :planning (planning)
