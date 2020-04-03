@@ -1,10 +1,15 @@
 # pomodoro
 
-Simply pomodoro app with history, and storage
+Another pomodoro app
 
 ## Overview
 
-FIXME: Write a paragraph about the library/project and highlight its goals.
+You are able to 
+ - run a single timer
+ - plan a sequence of timers
+ - /TODO/ run a plan
+ - review the history
+ - get a summary grouped by task
 
 ## Setup
 
