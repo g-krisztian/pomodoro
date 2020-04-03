@@ -45,13 +45,15 @@
 (defn length-to-seconds [length]
   (if (= :min (:unit @app-state)) (* 60 length) length))
 
-(defn start-button-on-click [e]
-  (swap! app-state merge {:start-time        (.getTime (js/Date.))
-                          :elapsed           0
-                          :paused            false
-                          :active            true
-                          :stop              false
-                          :length-in-seconds (length-to-seconds (:length @app-state))}))
+(defn start-button-on-click [task]
+  (swap! app-state merge
+         {:start-time        (.getTime (js/Date.))
+          :elapsed           0
+          :paused            false
+          :active            true
+          :stop              false
+          :length-in-seconds (length-to-seconds (:length @app-state))}
+         task))
 
 (defn pause-button-on-click []
   (swap! app-state update-in [:paused] not)
@@ -64,13 +66,12 @@
                  {:task-name (:task-name @app-state)
                   :length    (:length-in-seconds @app-state)
                   :start     (:start-time @app-state)
-                  :key       (get-key)
+                  :key       (:key @app-state)
                   :duration  (update-stop-time)}))
   (reset-task))
 
 (defn restart-button-on-click [task]
-  (swap! app-state merge (select-keys task [:task-name :length]))
-  (start-button-on-click nil))
+  (start-button-on-click task))
 
 (defn delete-history-on-click []
   (rc/remove! :history))
@@ -150,8 +151,14 @@
                     (dropdown-item "Second" #(swap-unit :sec))
                     (dropdown-item "Minute" #(swap-unit :min)))]])
 
+(defn start-plan-on-click [plan]
+  (swap! app-state merge {:remain-plan (rest plan)})
+  (start-button-on-click (select-keys (first plan) [:mode :key :length :task-name :unit]))
+  )
+
 (defn finish []
   (stop-button-on-click)
+  (when (= :plan (:mode @app-state)) (start-plan-on-click (:remain-plan @app-state)))
   (audio/playback-mp3))
 
 (defn main-loop []
@@ -224,7 +231,7 @@
 (defn control-buttons []
   [:div
    [:div {:class "btn-group" :style {:margin-top "1%"}}
-    (hideable-button-element :active "Start timer" start-button-on-click)
+    (hideable-button-element :active "Start timer" #(start-button-on-click {:mode :solo :key (get-key)}))
     (hideable-button-element :paused "Pause timer" pause-button-on-click)
     (hideable-button-element :resume "Resume timer" pause-button-on-click)
     (hideable-button-element :stop "Stop timer" stop-button-on-click)
@@ -241,7 +248,7 @@
    (control-buttons)])
 
 (defn plan-table []
-  [:div#planning
+  [:div#plan
    (when (rc/contains-key? :plan)
      [:table {:class "table table-striped table-bordered" :id "summary"}
       [:thead {:class "thead-dark"}
@@ -253,22 +260,11 @@
        (for [task (reverse (rc/get :plan))]
          [:tr {:key (:key task)}
           [:td (:task-name task)]
-          [:td (tf/render-time (:length task))]
-          [:td (button-element :active "Remove" #(restart-button-on-click (update-in task [:length] quot 1000)))]])]])])
+          [:td (tf/render-time (* 1000 (:length task)))]
+          [:td (button-element :active "Remove" #(rc/set! :plan (remove (fn [t] (= t task)) (rc/get :plan))))]])]])])
 
-(defn add-to-plan [task-name length]
-  (rc/set! :plan (cons {:key (get-key) :task-name task-name :length (* 1000 length)} (rc/get :plan))))
-
-
-(defn start-plan-on-click [plan]
-  (println plan)
-  (for [task plan]
-         (do
-           (swap! app-state merge (select-keys task [:key :length :task-name]))
-            (start-button-on-click nil))
-         )
-  )
-
+(defn add-to-plan [task]
+  (rc/set! :plan (cons task (rc/get :plan))))
 
 (defn plan-runner []
   [:div
@@ -287,9 +283,9 @@
    [:h3 "Planning a batch run"]
    (text-input :task-name #(start-with-enter % add-to-plan))
    (input-length :length #(start-with-enter % add-to-plan))
-   (button-element :add "Add task" #(add-to-plan (:task-name @app-state) (length-to-seconds (:length @app-state))))
-   (button-element :add-break "Add short break" #(add-to-plan "Short break" 300))
-   (button-element :add-break "Add long break" #(add-to-plan "Long break" 900))
+   (button-element :add "Add task" #(add-to-plan  (merge (select-keys @app-state [:task-name :length :unit]) {:mode :plan :key (get-key)})))
+   (button-element :add-break "Add short break" #(add-to-plan {:task-name "Short break" :length 5 :unit :min :key (get-key)}))
+   (button-element :add-break "Add long break" #(add-to-plan {:task-name "Long break" :length 15 :unit :min :key (get-key)}))
    [:p]
    (plan-table)
    (plan-runner)])
@@ -322,9 +318,9 @@
                                (when
                                  (:active @app-state)
                                  (str "| "
-                                   (:task-name @app-state)
-                                   ": "
-                                   (tf/render-time (* 1000 (:elapsed @app-state))))))))
+                                      (:task-name @app-state)
+                                      ": "
+                                      (tf/render-time (* 1000 (:elapsed @app-state))))))))
 
 (defn applet []
   (set-title)
