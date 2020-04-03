@@ -259,6 +259,29 @@
 (defn add-to-plan [task-name length]
   (rc/set! :plan (cons {:key (get-key) :task-name task-name :length (* 1000 length)} (rc/get :plan))))
 
+
+(defn start-plan-on-click [plan]
+  (println plan)
+  (for [task plan]
+         (do
+           (swap! app-state merge (select-keys task [:key :length :task-name]))
+            (start-button-on-click nil))
+         )
+  )
+
+
+(defn plan-runner []
+  [:div
+   [:div {:class "btn-group" :style {:margin-top "1%"}}
+    (hideable-button-element :active "Start plan" #(start-plan-on-click (reverse (rc/get :plan))))
+    (hideable-button-element :paused "Pause timer" pause-button-on-click)
+    (hideable-button-element :resume "Resume timer" pause-button-on-click)
+    (hideable-button-element :stop "Stop plan" stop-button-on-click)
+    ]
+   [:div {:style {:margin-top "1%"}}
+    (progress-bar)]]
+  )
+
 (defn planning []
   [:div
    [:h3 "Planning a batch run"]
@@ -268,8 +291,8 @@
    (button-element :add-break "Add short break" #(add-to-plan "Short break" 300))
    (button-element :add-break "Add long break" #(add-to-plan "Long break" 900))
    [:p]
-   (control-buttons)
-   (plan-table)])
+   (plan-table)
+   (plan-runner)])
 
 (defn swap-view [view]
   (swap! app-state merge {:view view}))
@@ -298,15 +321,18 @@
                                " "
                                (when
                                  (:active @app-state)
-                                 (tf/render-time (* 1000 (:elapsed @app-state)))))))
+                                 (str "| "
+                                   (:task-name @app-state)
+                                   ": "
+                                   (tf/render-time (* 1000 (:elapsed @app-state))))))))
 
 (defn applet []
   (set-title)
   [:div#app {:style {:margin "1%"}}
    [:h1 "Pomodoro app"]
    [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @app-state))))]
-   ;[:p (str @app-state)]
-   ;[:p (str (rc/get :plan))]
+   [:p (str @app-state)]
+   [:p (str (rc/get :plan))]
    (choose-view (:view @app-state))])
 
 (rd/render [applet] (. js/document (getElementById "app")))
