@@ -9,7 +9,7 @@ You are able to
  - plan a sequence of timers
  - /TODO/ run a plan
  - review the history
- - get a summary grouped by task
+ - get a summary, grouped by tasks
 
 ## Setup
 

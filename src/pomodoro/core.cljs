@@ -7,15 +7,19 @@
 
 (enable-console-print!)
 
-(defn get-last-key []
-  (inc (apply max (map :key (rc/get :history {:key 0})))))
+(when-not (or (rc/get :plan) (rc/get :history)) (rc/set! :next-key 0))
 
-(defonce app-state (r/atom {:length    5
+(defn get-key []
+  (let [actual (rc/get :next-key 0)]
+    (rc/set! :next-key (inc actual))
+    actual))
+
+(defonce app-state (r/atom {:length    25
+                            :elapsed   0
                             :task-name "Default"
                             :now       (.getTime (js/Date.))
-                            :key       (get-last-key)
                             :view      :single-run
-                            :unit      (rc/get :unit :sec)}))
+                            :unit      (rc/get :unit :min)}))
 
 (def dictionary {:summary    "Summary"
                  :history    "History"
@@ -60,10 +64,9 @@
                  {:task-name (:task-name @app-state)
                   :length    (:length-in-seconds @app-state)
                   :start     (:start-time @app-state)
-                  :key       (:key @app-state)
+                  :key       (get-key)
                   :duration  (update-stop-time)}))
-  (reset-task)
-  (swap! app-state update-in [:key] inc))
+  (reset-task))
 
 (defn restart-button-on-click [task]
   (swap! app-state merge (select-keys task [:task-name :length]))
@@ -130,11 +133,6 @@
           }
     args]])
 
-(defn swap-view [view]
-  (swap! app-state merge {:view view}))
-
-
-
 (defn swap-unit [m]
   (swap! app-state merge {:unit m})
   (rc/set! :unit m))
@@ -162,31 +160,18 @@
     (swap! app-state update-in [:elapsed] inc)
     (when (> (:elapsed @app-state) (:length-in-seconds @app-state)) (finish))))
 
-(defn progress-bar []
-  (let [lenght (:length-in-seconds @app-state)
-        elapsed (:elapsed @app-state)
-        progress (* 100 (/ elapsed lenght))]
-    [:div {:class "progress"}
-     [:div {:class         "progress-bar"
-            :role          "progressbar"
-            :style         {:width (str progress "%")}
-            :aria-valuemin "0"
-            :aria-valuemax 100
-            :aria-valuenow progress}
-      (tf/render-time (* 1000 elapsed))]]))
-
 (defn summ-usage []
   (->> (rc/get :history)
        (map #(select-keys % [:task-name :duration]))
        (group-by :task-name)
-       (map (fn [[k v]] (let [task-name k
-                              lenght (reduce + (for [d v] (:duration d)))
-                              key (str k lenght)]
-                          {:task-name task-name
-                           :length    lenght
-                           :key       key})))))
+       (map (fn [[task-name v]] (let [length (reduce + (for [d v] (:duration d)))
+                                      key task-name]
+                                  {:task-name task-name
+                                   :length    length
+                                   :key       key})))))
+
 (defn summary []
-  [:div#summary {:style {:margin "1%"}}
+  [:div#summary
    [:h3 "Summary"]
    (when (rc/contains-key? :history)
      [:table {:class "table table-striped table-bordered" :id "summary"}
@@ -197,13 +182,13 @@
         [:th ""]]]
       [:tbody
        (for [task (into [] (summ-usage))]
-         [:tr {:key (:key task)}
+         [:tr {:key task}
           [:td (:task-name task)]
           [:td (tf/render-time (:length task))]
           [:td (button-element :active "Restart" #(restart-button-on-click (update-in task [:length] quot 1000)))]])]])])
 
 (defn history-table []
-  [:div#history {:style {:margin "1%"}}
+  [:div#history
    [:h3 "History"]
    (when (rc/contains-key? :history)
      [:table {:class "table table-striped table-bordered" :id "history"}
@@ -223,6 +208,19 @@
           [:td (tf/render-time (:duration task))]
           [:td (button-element :active "Restart" #(restart-button-on-click task))]])]])])
 
+(defn progress-bar []
+  (let [lenght (:length-in-seconds @app-state 1)
+        elapsed (:elapsed @app-state)
+        progress (* 100 (/ elapsed lenght))]
+    [:div {:class "progress"}
+     [:div {:class         "progress-bar"
+            :role          "progressbar"
+            :style         {:width (str progress "%")}
+            :aria-valuemin "0"
+            :aria-valuemax 100
+            :aria-valuenow progress}
+      (tf/render-time (* 1000 elapsed))]]))
+
 (defn control-buttons []
   [:div
    [:div {:class "btn-group" :style {:margin-top "1%"}}
@@ -231,21 +229,19 @@
     (hideable-button-element :resume "Resume timer" pause-button-on-click)
     (hideable-button-element :stop "Stop timer" stop-button-on-click)
     ]
-    [:div {:style {:margin-top "1%"}}
-     (progress-bar)]])
+   [:div {:style {:margin-top "1%"}}
+    (progress-bar)]])
 
 (defn single-run []
-  (when (= :single-run (:view @app-state))
-    [:div#single-run
-     [:div
-      [:h3 "Single run"]
-      (text-input :task-name #(start-with-enter % start-button-on-click))
-      (input-length :length #(start-with-enter % start-button-on-click))]
-     (control-buttons)]))
+  [:div#single-run
+   [:div
+    [:h3 "Single run"]
+    (text-input :task-name #(start-with-enter % start-button-on-click))
+    (input-length :length #(start-with-enter % start-button-on-click))]
+   (control-buttons)])
 
 (defn plan-table []
   [:div#planning
-   [:h3 "Planning a batch run"]
    (when (rc/contains-key? :plan)
      [:table {:class "table table-striped table-bordered" :id "summary"}
       [:thead {:class "thead-dark"}
@@ -254,32 +250,37 @@
         [:th "Planned time"]
         [:th (button-element :active "Clear plan" #(rc/remove! :plan))]]]
       [:tbody
-       (for [task (into [] (reverse (rc/get :plan)))]
-         [:tr {:key task}
+       (for [task (reverse (rc/get :plan))]
+         [:tr {:key (:key task)}
           [:td (:task-name task)]
           [:td (tf/render-time (:length task))]
           [:td (button-element :active "Remove" #(restart-button-on-click (update-in task [:length] quot 1000)))]])]])])
 
 (defn add-to-plan [task-name length]
-  (rc/set! :plan (cons {:task-name task-name :length (* 1000 length)} (rc/get :plan))))
+  (rc/set! :plan (cons {:key (get-key) :task-name task-name :length (* 1000 length)} (rc/get :plan))))
 
 (defn planning []
   [:div
-   (plan-table)
+   [:h3 "Planning a batch run"]
    (text-input :task-name #(start-with-enter % add-to-plan))
    (input-length :length #(start-with-enter % add-to-plan))
    (button-element :add "Add task" #(add-to-plan (:task-name @app-state) (length-to-seconds (:length @app-state))))
    (button-element :add-break "Add short break" #(add-to-plan "Short break" 300))
    (button-element :add-break "Add long break" #(add-to-plan "Long break" 900))
    [:p]
-   (control-buttons)])
+   (control-buttons)
+   (plan-table)])
+
+(defn swap-view [view]
+  (swap! app-state merge {:view view}))
 
 (defn choose-view [label]
   (let [views [:single-run :summary :history :planning]]
-    [:div {:style {:margin "1%"}}
+    [:div
      (dropdown (dictionary label)
                (for [view views]
                  (dropdown-item (dictionary view) #(swap-view view))))
+     [:p]
      (condp = label
        :summary (summary)
        :history (history-table)
@@ -291,13 +292,21 @@
 (defonce ticker
          (js/setInterval main-loop 1000))
 
+(defn set-title []
+  (set! js/document.title (str "Pompdoro - "
+                               ((:view @app-state) dictionary)
+                               " "
+                               (when
+                                 (:active @app-state)
+                                 (tf/render-time (* 1000 (:elapsed @app-state)))))))
+
 (defn applet []
-  (set! js/document.title (str "Pompdoro - " ((:view @app-state) dictionary)))
+  (set-title)
   [:div#app {:style {:margin "1%"}}
    [:h1 "Pomodoro app"]
    [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @app-state))))]
-   [:p (str @app-state)]
-   [:p (str (rc/get :plan))]
+   ;[:p (str @app-state)]
+   ;[:p (str (rc/get :plan))]
    (choose-view (:view @app-state))])
 
 (rd/render [applet] (. js/document (getElementById "app")))
