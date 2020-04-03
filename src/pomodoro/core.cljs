@@ -17,12 +17,12 @@
                             :view      :single-run
                             :unit (rc/get :unit :sec)}))
 
-(def titles {:summary    "Summary"
-             :history    "History"
-             :planning   "Planning"
-             :single-run "Single run"
-             :sec "Second"
-             :min "Minute"})
+(def dictionary {:summary "Summary"
+             :history     "History"
+             :planning    "Planning"
+             :single-run  "Single run"
+             :sec         "Second"
+             :min         "Minute"})
 
 (defn reset-task []
   (swap! app-state merge {:paused  true
@@ -130,7 +130,7 @@
     args]])
 
 (defn choose-view []
-  (dropdown (titles (:view @app-state))
+  (dropdown (dictionary (:view @app-state))
             (dropdown-item "Single run" #(swap! app-state merge {:view :single-run}))
             (dropdown-item "Summary" #(swap! app-state merge {:view :summary}))
             (dropdown-item "History" #(swap! app-state merge {:view :history}))
@@ -152,7 +152,7 @@
              :value     (key @app-state)
              :on-change #(swap-value key %)
              :disabled  (:active @app-state)}]
-    [:span (dropdown (titles (:unit @app-state))
+    [:span (dropdown (dictionary (:unit @app-state))
               (dropdown-item "Second" #(swap-unit :sec))
               (dropdown-item "Minute" #(swap-unit :min))
               )]]])
@@ -266,7 +266,7 @@
          (js/setInterval main-loop 1000))
 
 (defn applet []
-  (set! js/document.title ((:view @app-state) titles))
+  (set! js/document.title (str "Pompdoro - " ((:view @app-state) dictionary)))
   [:div#app {:style {:margin "1%"}}
    [:h1 "Pomodoro app"]
    [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @app-state))))]
