@@ -95,23 +95,6 @@
 (defn swap-value [key e]
   (swap! app-state merge {key (-> e .-target .-value)}))
 
-(defn start-with-enter [e ac]
-  (when (= 13 (.-charCode e)) (ac e)))
-
-(defn text-input [key enter-action]
-  [:div {:classs "input-group"}
-   [:div {:class "input-group-prepend"}
-    [:span {:class "input-group-text" :style {:min-width "150px"}} "Task name:"]
-    [:input {:type             "text"
-             :class            "form-control"
-             :value            (key @app-state)
-             :on-change        #(swap-value key %)
-             :disabled         (:active @app-state)
-             :on-key-press     enter-action
-             :aria-label       "TaskName"
-             :aria-describedby "addon-wrapping"}]]
-   ])
-
 (defn dropdown-item [label action]
   [:a {:type     "button"
        :class    "dropdown-item"
@@ -138,28 +121,43 @@
   (swap! app-state merge {:unit m})
   (rc/set! :unit m))
 
-(defn input-length [key enter-action]
+(defn input-length [key action]
   [:div {:class "input-group-prepend"}
    [:span {:class "input-group-text" :id "addon-wrapping" :style {:min-width "150px"}} "Task length:"]
    [:input {:type         "number"
             :class        "form-control"
             :value        (key @app-state)
             :on-change    #(swap-value key %)
-            :on-key-press enter-action
+            :on-key-press action
             :disabled     (:active @app-state)}]
    [:span (dropdown (dictionary (:unit @app-state))
                     (dropdown-item "Second" #(swap-unit :sec))
                     (dropdown-item "Minute" #(swap-unit :min)))]])
 
+(defn text-input [key action]
+  [:div {:classs "input-group"}
+   [:div {:class "input-group-prepend"}
+    [:span {:class "input-group-text" :style {:min-width "150px"}} "Task name:"]
+    [:input {:type             "text"
+             :class            "form-control"
+             :value            (key @app-state)
+             :on-change        #(swap-value key %)
+             :disabled         (:active @app-state)
+             :on-key-press     action
+             :aria-label       "TaskName"
+             :aria-describedby "addon-wrapping"}]]
+   ])
+
 (defn start-plan-on-click [plan]
   (swap! app-state merge {:remain-plan (rest plan)})
-  (start-button-on-click (select-keys (first plan) [:mode :key :length :task-name :unit]))
+  (start-button-on-click (select-keys (first plan) [:length-in-seconds :key :length :task-name :unit]))
   )
 
 (defn finish []
   (stop-button-on-click)
-  (when (= :plan (:mode @app-state)) (start-plan-on-click (:remain-plan @app-state)))
-  (audio/playback-mp3))
+  (audio/playback-mp3)
+  (when-not (empty? (:remain-plan @app-state)) (start-plan-on-click (:remain-plan @app-state)))
+  )
 
 (defn main-loop []
   (swap! app-state merge [:now (.getTime (js/Date.))])
@@ -231,7 +229,7 @@
 (defn control-buttons []
   [:div
    [:div {:class "btn-group" :style {:margin-top "1%"}}
-    (hideable-button-element :active "Start timer" #(start-button-on-click {:mode :solo :key (get-key)}))
+    (hideable-button-element :active "Start timer" #(start-button-on-click {:key (get-key)}))
     (hideable-button-element :paused "Pause timer" pause-button-on-click)
     (hideable-button-element :resume "Resume timer" pause-button-on-click)
     (hideable-button-element :stop "Stop timer" stop-button-on-click)
@@ -239,13 +237,31 @@
    [:div {:style {:margin-top "1%"}}
     (progress-bar)]])
 
+(defn new-task []
+  (let [value (merge (select-keys @app-state [:task-name :length :unit]) {:key (get-key)})]
+    (println value)
+    value))
+
+(defn add-new-task []
+  (start-button-on-click (new-task)))
+
+(defn start-on-enter [event]
+  (when (= 13 (.-charCode event)) (add-new-task))
+  )
+
+
 (defn single-run []
   [:div#single-run
    [:div
     [:h3 "Single run"]
-    (text-input :task-name #(start-with-enter % start-button-on-click))
-    (input-length :length #(start-with-enter % start-button-on-click))]
+    (text-input :task-name start-on-enter)
+    (input-length :length start-on-enter)]
    (control-buttons)])
+
+(defn get-task-in-milisec [task]
+  (if (= (:unit task) :min)
+    (* 60000 (:length task))
+    (* 1000 (:length task))))
 
 (defn plan-table []
   [:div#plan
@@ -256,20 +272,23 @@
         [:th "Task name"]
         [:th "Planned time"]
         [:th (button-element :active "Clear plan" #(rc/remove! :plan))]]]
-      [:tbody
-       (for [task (reverse (rc/get :plan))]
-         [:tr {:key (:key task)}
-          [:td (:task-name task)]
-          [:td (tf/render-time (* 1000 (:length task)))]
-          [:td (button-element :active "Remove" #(rc/set! :plan (remove (fn [t] (= t task)) (rc/get :plan))))]])]])])
+      (into [:tbody]
+            (for [task (rc/get :plan)]
+              [:tr {:key (:key task)}
+               [:td (:task-name task)]
+               [:td (tf/render-time (get-task-in-milisec task))]
+               [:td (button-element :active "Remove" #(rc/set! :plan (remove (fn [t] (= t task)) (rc/get :plan))))]]))])])
+
+
 
 (defn add-to-plan [task]
-  (rc/set! :plan (cons task (rc/get :plan))))
+  (println "task: " task)
+  (rc/set! :plan (conj (rc/get :plan []) task)))
 
 (defn plan-runner []
   [:div
    [:div {:class "btn-group" :style {:margin-top "1%"}}
-    (hideable-button-element :active "Start plan" #(start-plan-on-click (reverse (rc/get :plan))))
+    (hideable-button-element :active "Start plan" #(start-plan-on-click (rc/get :plan)))
     (hideable-button-element :paused "Pause timer" pause-button-on-click)
     (hideable-button-element :resume "Resume timer" pause-button-on-click)
     (hideable-button-element :stop "Stop plan" stop-button-on-click)
@@ -278,12 +297,18 @@
     (progress-bar)]]
   )
 
+(defn add-new-task-to-plan []
+  (add-to-plan (new-task)))
+
+(defn add-to-plan-on-enter [event]
+  (when (= 13 (.-charCode event)) (add-new-task-to-plan)))
+
 (defn planning []
   [:div
    [:h3 "Planning a batch run"]
-   (text-input :task-name #(start-with-enter % add-to-plan))
-   (input-length :length #(start-with-enter % add-to-plan))
-   (button-element :add "Add task" #(add-to-plan  (merge (select-keys @app-state [:task-name :length :unit]) {:mode :plan :key (get-key)})))
+   (text-input :task-name add-to-plan-on-enter)
+   (input-length :length add-to-plan-on-enter)
+   (button-element :add "Add task" #(add-new-task-to-plan))
    (button-element :add-break "Add short break" #(add-to-plan {:task-name "Short break" :length 5 :unit :min :key (get-key)}))
    (button-element :add-break "Add long break" #(add-to-plan {:task-name "Long break" :length 15 :unit :min :key (get-key)}))
    [:p]
