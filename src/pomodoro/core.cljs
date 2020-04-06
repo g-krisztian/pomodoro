@@ -5,15 +5,6 @@
             [pomodoro.audio :as audio]
             [pomodoro.time-format :as tf]))
 
-(enable-console-print!)
-
-(when-not (or (rc/get :plan) (rc/get :history)) (rc/set! :next-key 0))
-
-(defn get-key []
-  (let [actual (rc/get :next-key 0)]
-    (rc/set! :next-key (inc actual))
-    actual))
-
 (defonce app-state (r/atom {:length    25
                             :elapsed   0
                             :task-name "Default"
@@ -27,6 +18,15 @@
                  :single-run "Single run"
                  :sec        "Second"
                  :min        "Minute"})
+
+(enable-console-print!)
+
+(when-not (or (rc/get :plan) (rc/get :history)) (rc/set! :next-key 0))
+
+(defn get-key []
+  (let [actual (rc/get :next-key 0)]
+    (rc/set! :next-key (inc actual))
+    actual))
 
 (defn reset-task []
   (swap! app-state merge {:paused  true
@@ -53,7 +53,8 @@
           :active            true
           :stop              false
           :length-in-seconds (length-to-seconds (:length @app-state))}
-         task))
+         task
+         {:key (get-key)}))
 
 (defn pause-button-on-click []
   (swap! app-state update-in [:paused] not)
@@ -150,7 +151,7 @@
 
 (defn start-plan-on-click [plan]
   (swap! app-state merge {:remain-plan (rest plan)})
-  (start-button-on-click (select-keys (first plan) [:length-in-seconds :key :length :task-name :unit]))
+  (start-button-on-click (select-keys (first plan) [:length :task-name :unit :length-in-seconds]))
   )
 
 (defn finish []
@@ -178,6 +179,7 @@
 (defn summary []
   [:div#summary
    [:h3 "Summary"]
+   [:p1 (str (map (fn [[k v]] [k (count v)]) (group-by :key (rc/get :history))))]
    (when (rc/contains-key? :history)
      [:table {:class "table table-striped table-bordered" :id "summary"}
       [:thead {:class "thead-dark"}
@@ -237,18 +239,21 @@
    [:div {:style {:margin-top "1%"}}
     (progress-bar)]])
 
-(defn new-task []
-  (let [value (merge (select-keys @app-state [:task-name :length :unit]) {:key (get-key)})]
-    (println value)
-    value))
+(defn get-task-in-seconds [task]
+  (if (= (:unit task) :min)
+    (* 60 (:length task))
+    (:length task))
+  )
 
-(defn add-new-task []
+(defn new-task []
+  (let [task (select-keys @app-state [:task-name :length :unit])]
+    (merge task {:key (get-key) :length-in-seconds (get-task-in-seconds task)})))
+
+(defn run-new-task []
   (start-button-on-click (new-task)))
 
 (defn start-on-enter [event]
-  (when (= 13 (.-charCode event)) (add-new-task))
-  )
-
+  (when (= 13 (.-charCode event)) (run-new-task)))
 
 (defn single-run []
   [:div#single-run
@@ -258,10 +263,10 @@
     (input-length :length start-on-enter)]
    (control-buttons)])
 
+
+
 (defn get-task-in-milisec [task]
-  (if (= (:unit task) :min)
-    (* 60000 (:length task))
-    (* 1000 (:length task))))
+  (* 1000 (get-task-in-seconds task)))
 
 (defn plan-table []
   [:div#plan
