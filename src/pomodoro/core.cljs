@@ -207,7 +207,7 @@
             (for [task (rc/get :history)]
               [:tr {:key (:key task)}
                [:td (:task-name task)]
-               [:td (tf/render-time (tf/correct-time (:start task)))]
+               [:td (.toLocaleString (js/Date. (:start task)))]
                [:td (tf/render-time (* 1000 (:length task)))]
                [:td (tf/render-time (:duration task))]
                [:td (button-element :active "Restart" #(restart-button-on-click task))]]))])])
