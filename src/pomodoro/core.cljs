@@ -14,7 +14,7 @@
 
 (def dictionary {:summary    "Summary"
                  :history    "History"
-                 :planning   "Planning"
+                 :planning   "Batch run"
                  :single-run "Single run"
                  :sec        "Second"
                  :min        "Minute"})
@@ -35,7 +35,7 @@
                           :resume  true
                           :elapsed 0}))
 
-(defn update-stop-time []
+(defn get-real-duration []
   (let [now (.getTime (js/Date.))
         start (:start-time @app-state)
         real-duration (- now start)
@@ -68,7 +68,7 @@
                   :length    (:length-in-seconds @app-state)
                   :start     (:start-time @app-state)
                   :key       (:key @app-state)
-                  :duration  (update-stop-time)}))
+                  :duration  (get-real-duration)}))
   (reset-task))
 
 (defn restart-button-on-click [task]
@@ -101,8 +101,8 @@
        :class    "dropdown-item"
        :on-click action
        :key      label}
-   label]
-  )
+   label])
+
 
 (defn dropdown [value & args]
   [:div {:class "dropdown"}
@@ -114,8 +114,8 @@
             :disabled      (:active @app-state)
             :value         value}]
    [:div {:class           "dropdown-menu"
-          :aria-labelledby "dropdownMenuButton"
-          }
+          :aria-labelledby "dropdownMenuButton"}
+
     args]])
 
 (defn swap-unit [m]
@@ -146,19 +146,20 @@
              :disabled         (:active @app-state)
              :on-key-press     action
              :aria-label       "TaskName"
-             :aria-describedby "addon-wrapping"}]]
-   ])
+             :aria-describedby "addon-wrapping"}]]])
 
-(defn start-plan-on-click [plan]
-  (swap! app-state merge {:remain-plan (rest plan)})
-  (start-button-on-click (select-keys (first plan) [:length :task-name :unit :length-in-seconds]))
-  )
+
+(defn start-plan-on-click [batch]
+  (when-not (empty? batch)
+    (do (swap! app-state merge {:remain-plan (rest batch)})
+        (start-button-on-click (select-keys (first batch) [:length :task-name :unit :length-in-seconds])))))
+
 
 (defn finish []
   (stop-button-on-click)
   (audio/playback-mp3)
-  (when-not (empty? (:remain-plan @app-state)) (start-plan-on-click (:remain-plan @app-state)))
-  )
+  (when-not (empty? (:remain-plan @app-state)) (start-plan-on-click (:remain-plan @app-state))))
+
 
 (defn main-loop []
   (swap! app-state merge [:now (.getTime (js/Date.))])
@@ -230,16 +231,16 @@
     (hideable-button-element :active "Start timer" #(start-button-on-click {:key (get-key)}))
     (hideable-button-element :paused "Pause timer" pause-button-on-click)
     (hideable-button-element :resume "Resume timer" pause-button-on-click)
-    (hideable-button-element :stop "Stop timer" stop-button-on-click)
-    ]
+    (hideable-button-element :stop "Stop timer" stop-button-on-click)]
+
    [:div {:style {:margin-top "1%"}}
     (progress-bar)]])
 
 (defn get-task-in-seconds [task]
   (if (= (:unit task) :min)
     (* 60 (:length task))
-    (:length task))
-  )
+    (:length task)))
+
 
 (defn new-task []
   (let [task (select-keys @app-state [:task-name :length :unit])]
@@ -289,14 +290,14 @@
 (defn plan-runner []
   [:div
    [:div {:class "btn-group" :style {:margin-top "1%"}}
-    (hideable-button-element :active "Start plan" #(start-plan-on-click (rc/get :plan)))
+    (hideable-button-element :active "Start batch" #(start-plan-on-click (rc/get :plan [])))
     (hideable-button-element :paused "Pause timer" pause-button-on-click)
     (hideable-button-element :resume "Resume timer" pause-button-on-click)
-    (hideable-button-element :stop "Stop plan" stop-button-on-click)
-    ]
+    (hideable-button-element :stop "Stop batch" stop-button-on-click)]
+
    [:div {:style {:margin-top "1%"}}
-    (progress-bar)]]
-  )
+    (progress-bar)]])
+
 
 (defn add-new-task-to-plan []
   (add-to-plan (new-task)))
@@ -320,7 +321,7 @@
   (swap! app-state merge {:view view}))
 
 (defn choose-view [label]
-  (let [views [:single-run :summary :history :planning]]
+  (let [views [:single-run :planning :history :summary]]
     [:div
      (dropdown (dictionary label)
                (for [view views]
