@@ -168,18 +168,14 @@
 
 (defn summ-usage []
   (->> (rc/get :history)
-       (map #(select-keys % [:task-name :duration]))
        (group-by :task-name)
-       (map (fn [[task-name v]] (let [length (reduce + (for [d v] (:duration d)))
-                                      key task-name]
+       (map (fn [[task-name v]] (let [length (reduce + (for [d v] (:duration d)))]
                                   {:task-name task-name
-                                   :length    length
-                                   :key       key})))))
+                                   :length    length})))))
 
 (defn summary []
   [:div#summary
    [:h3 "Summary"]
-   [:p1 (str (map (fn [[k v]] [k (count v)]) (group-by :key (rc/get :history))))]
    (when (rc/contains-key? :history)
      [:table {:class "table table-striped table-bordered" :id "summary"}
       [:thead {:class "thead-dark"}
@@ -187,12 +183,12 @@
         [:th "Task name"]
         [:th "Spent time"]
         [:th ""]]]
-      [:tbody
-       (for [task (into [] (summ-usage))]
-         [:tr {:key task}
-          [:td (:task-name task)]
-          [:td (tf/render-time (:length task))]
-          [:td (button-element :active "Restart" #(restart-button-on-click (update-in task [:length] quot 1000)))]])]])])
+      (into [:tbody]
+            (for [task (summ-usage)]
+              [:tr {:key (:task-name task)}
+               [:td (:task-name task)]
+               [:td (tf/render-time (:length task))]
+               [:td (button-element :active "Restart" #(restart-button-on-click (update-in task [:length] quot 1000)))]]))])])
 
 (defn history-table []
   [:div#history
@@ -206,14 +202,14 @@
         [:th "Planned duration"]
         [:th "Real duration"]
         [:th (button-element :active "Delete history" delete-history-on-click)]]]
-      [:tbody
-       (for [task (rc/get :history)]
-         [:tr {:key (:key task)}
-          [:td (:task-name task)]
-          [:td (tf/render-time (tf/correct-time (:start task)))]
-          [:td (tf/render-time (* 1000 (:length task)))]
-          [:td (tf/render-time (:duration task))]
-          [:td (button-element :active "Restart" #(restart-button-on-click task))]])]])])
+      (into [:tbody]
+            (for [task (rc/get :history)]
+              [:tr {:key (:key task)}
+               [:td (:task-name task)]
+               [:td (tf/render-time (tf/correct-time (:start task)))]
+               [:td (tf/render-time (* 1000 (:length task)))]
+               [:td (tf/render-time (:duration task))]
+               [:td (button-element :active "Restart" #(restart-button-on-click task))]]))])])
 
 (defn progress-bar []
   (let [lenght (:length-in-seconds @app-state 1)
