@@ -61,14 +61,17 @@
   (swap! app-state update-in [:resume] not)
   (swap! app-state merge {:paused-time (.getTime (js/Date.))}))
 
-(defn stop-button-on-click []
+(defn add-to-history []
   (rc/set! :history
            (conj (rc/get :history)
                  {:task-name (:task-name @app-state)
                   :length    (:length-in-seconds @app-state)
                   :start     (:start-time @app-state)
-                  :key       (:key @app-state)
-                  :duration  (get-real-duration)}))
+                  :key       (str "history_" (:key @app-state))
+                  :duration  (get-real-duration)})))
+
+(defn stop-button-on-click []
+  (add-to-history)
   (reset-task))
 
 (defn restart-button-on-click [task]
@@ -79,15 +82,14 @@
 
 (defn common-button-style [value callback]
   {:type     :button
+   :class    "btn btn-secondary"
    :value    value
    :style    {:width "150px"}
    :on-click callback})
 
 (defn hideable-button-element [key value callback]
-  [:input
-   (merge
-     (common-button-style value callback)
-     {:style (merge {:width "150px"} (when (key @app-state) {:display "none"}))})])
+  (when-not (key @app-state) [:input
+                              (common-button-style value callback)]))
 
 (defn button-element [key value callback]
   [:input (merge (common-button-style value callback)
@@ -136,17 +138,16 @@
                     (dropdown-item "Minute" #(swap-unit :min)))]])
 
 (defn text-input [key action]
-  [:div {:classs "input-group"}
-   [:div {:class "input-group-prepend"}
-    [:span {:class "input-group-text" :style {:min-width "150px"}} "Task name:"]
-    [:input {:type             "text"
-             :class            "form-control"
-             :value            (key @app-state)
-             :on-change        #(swap-value key %)
-             :disabled         (:active @app-state)
-             :on-key-press     action
-             :aria-label       "TaskName"
-             :aria-describedby "addon-wrapping"}]]])
+  [:div {:class "input-group-prepend"}
+   [:span {:class "input-group-text" :style {:min-width "150px"}} "Task name:"]
+   [:input {:type             "text"
+            :class            "form-control"
+            :value            (key @app-state)
+            :on-change        #(swap-value key %)
+            :disabled         (:active @app-state)
+            :on-key-press     action
+            :aria-label       "TaskName"
+            :aria-describedby "addon-wrapping"}]])
 
 
 (defn start-plan-on-click [batch]
@@ -167,7 +168,7 @@
     (swap! app-state update-in [:elapsed] inc)
     (when (> (:elapsed @app-state) (:length-in-seconds @app-state)) (finish))))
 
-(defn summ-usage []
+(defn sum-usage []
   (->> (rc/get :history)
        (group-by :task-name)
        (map (fn [[task-name v]] (let [length (reduce + (for [d v] (:duration d)))]
@@ -185,7 +186,7 @@
         [:th "Spent time"]
         [:th ""]]]
       (into [:tbody]
-            (for [task (summ-usage)]
+            (for [task (sum-usage)]
               [:tr {:key (:task-name task)}
                [:td (:task-name task)]
                [:td (tf/render-time (:length task))]
@@ -244,7 +245,7 @@
 
 (defn new-task []
   (let [task (select-keys @app-state [:task-name :length :unit])]
-    (merge task {:key (get-key) :length-in-seconds (get-task-in-seconds task)})))
+    (merge task {:key (str "plan_" (get-key)) :length-in-seconds (get-task-in-seconds task)})))
 
 (defn run-new-task []
   (start-button-on-click (new-task)))
@@ -272,7 +273,7 @@
       [:thead {:class "thead-dark"}
        [:tr
         [:th "Task name"]
-        [:th "Planned time"]
+        [:th (str "Planned time: " (tf/render-time (* 1000 (reduce + (map long (map :length-in-seconds (rc/get :plan)))))))]
         [:th (button-element :active "Clear plan" #(rc/remove! :plan))]]]
       (into [:tbody]
             (for [task (rc/get :plan)]
@@ -284,20 +285,27 @@
 
 
 (defn add-to-plan [task]
-  (println "task: " task)
   (rc/set! :plan (conj (rc/get :plan []) task)))
 
+(defn run-next-item []
+  (let [plan (:remain-plan @app-state)]
+    (add-to-history)
+    (if (empty? plan)
+      (reset-task)
+      (start-plan-on-click plan))))
+
 (defn plan-runner []
-  [:div
-   [:div {:class "btn-group" :style {:margin-top "1%"}}
-    (hideable-button-element :active "Start batch" #(start-plan-on-click (rc/get :plan [])))
-    (hideable-button-element :paused "Pause timer" pause-button-on-click)
-    (hideable-button-element :resume "Resume timer" pause-button-on-click)
-    (hideable-button-element :stop "Stop batch" stop-button-on-click)]
+  (when (rc/contains-key? :plan)
+    [:div
+     [:div {:class "btn-group" :style {:margin-top "1%"}}
+      (hideable-button-element :active "Start batch" #(start-plan-on-click (rc/get :plan [])))
+      (hideable-button-element :paused "Pause timer" pause-button-on-click)
+      (hideable-button-element :resume "Resume timer" pause-button-on-click)
+      (when-not (empty? (:remain-plan @app-state)) (hideable-button-element :stop "Run next" run-next-item))
+      (hideable-button-element :stop "Stop batch" stop-button-on-click)]
 
-   [:div {:style {:margin-top "1%"}}
-    (progress-bar)]])
-
+     [:div {:style {:margin-top "1%"}}
+      (progress-bar)]]))
 
 (defn add-new-task-to-plan []
   (add-to-plan (new-task)))
@@ -310,9 +318,12 @@
    [:h3 "Planning a batch run"]
    (text-input :task-name add-to-plan-on-enter)
    (input-length :length add-to-plan-on-enter)
-   (button-element :add "Add task" #(add-new-task-to-plan))
-   (button-element :add-break "Add short break" #(add-to-plan {:task-name "Short break" :length 5 :unit :min :key (get-key)}))
-   (button-element :add-break "Add long break" #(add-to-plan {:task-name "Long break" :length 15 :unit :min :key (get-key)}))
+   (let [long-break {:task-name "Long break" :length-in-seconds 900 :length 15 :unit :min :key (get-key)}
+         short-break {:task-name "Short break" :length-in-seconds 300 :length 5 :unit :min :key (get-key)}]
+     [:div {:class "btn-group"}
+      (button-element :add "Add task" #(add-new-task-to-plan))
+      (button-element :add-break "Add short break" #(add-to-plan short-break))
+      (button-element :add-break "Add long break" #(add-to-plan long-break))])
    [:p]
    (plan-table)
    (plan-runner)])
@@ -323,9 +334,7 @@
 (defn choose-view [label]
   (let [views [:single-run :planning :history :summary]]
     [:div
-     (dropdown (dictionary label)
-               (for [view views]
-                 (dropdown-item (dictionary view) #(swap-view view))))
+     (into [:div {:class "btn-group"}] (for [view views] (button-element :active (dictionary view) #(swap-view view))))
      [:p]
      (condp = label
        :summary (summary)
@@ -354,8 +363,8 @@
   [:div#app {:style {:margin "1%"}}
    [:h1 "Pomodoro app"]
    [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @app-state))))]
-   [:p (str @app-state)]
-   [:p (str (rc/get :plan))]
+   ;[:p (str @app-state)]
+   ;[:p (str (rc/get :plan))]
    (choose-view (:view @app-state))])
 
 (rd/render [applet] (. js/document (getElementById "app")))
