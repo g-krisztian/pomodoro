@@ -7,7 +7,7 @@ Another pomodoro app
 You are able to 
  - run a single timer
  - plan a sequence of timers
- - /TODO/ run a plan
+ - run a plan
  - review the history
  - get a summary, grouped by tasks
 
