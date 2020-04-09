@@ -2,6 +2,7 @@
   (:require [reagent.core :as r]
             [reagent.dom :as rd]
             [reagent.cookies :as rc]
+            [reagent-modals.modals :as rm]
             [pomodoro.audio :as audio]
             [pomodoro.time-format :as tf]))
 
@@ -362,10 +363,12 @@
   (set-title)
   [:div#app {:style {:margin "1%"}}
    [:h1 "Pomodoro app"]
+   [button-element :modal "modal" #(rm/modal! [:p "semmi"])]
    [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @app-state))))]
    ;[:p (str @app-state)]
    ;[:p (str (rc/get :plan))]
-   (choose-view (:view @app-state))])
+   (choose-view (:view @app-state))
+   [rm/modal-window]])
 
 (rd/render [applet] (. js/document (getElementById "app")))
 

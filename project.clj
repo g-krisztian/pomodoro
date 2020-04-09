@@ -11,6 +11,7 @@
                  [org.clojure/core.async  "0.4.500"]
                  [reagent "0.10.0"]
                  [reagent-utils "0.3.3"]
+                 [org.clojars.frozenlock/reagent-modals "0.2.8"]
                  [cljs-bach "0.3.0"]
                  [com.cognitect/transit-cljs "0.8.256"]]
 
