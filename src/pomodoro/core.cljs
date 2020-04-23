@@ -319,12 +319,12 @@
    [:h3 "Planning a batch run"]
    (text-input :task-name add-to-plan-on-enter)
    (input-length :length add-to-plan-on-enter)
-   (let [long-break {:task-name "Long break" :length-in-seconds 900 :length 15 :unit :min :key (get-key)}
-         short-break {:task-name "Short break" :length-in-seconds 300 :length 5 :unit :min :key (get-key)}]
+   (let [long-break {:task-name "Long break" :length-in-seconds 900 :length 15 :unit :min :key (str "plan_" (get-key))}
+         short-break {:task-name "Short break" :length-in-seconds 300 :length 5 :unit :min :key (str "plan_" (get-key))}]
      [:div {:class "btn-group"}
-      (button-element :add "Add task" #(add-new-task-to-plan))
-      (button-element :add-break "Add short break" #(add-to-plan short-break))
-      (button-element :add-break "Add long break" #(add-to-plan long-break))])
+      (button-element :active "Add task" #(add-new-task-to-plan))
+      (button-element :active "Add short break" #(add-to-plan short-break))
+      (button-element :active "Add long break" #(add-to-plan long-break))])
    [:p]
    (plan-table)
    (plan-runner)])
@@ -361,9 +361,11 @@
 
 (defn applet []
   (set-title)
-  [:div#app {:style {:margin "1%"}}
+  [:div#app {:style {:margin "auto"
+                     :width "max-content"}}
+
    [:h1 "Pomodoro app"]
-   [button-element :modal "modal" #(rm/modal! [:p "semmi"])]
+;   [button-element :modal "modal" #(rm/modal! [:p "semmi"])]
    [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @app-state))))]
    ;[:p (str @app-state)]
    ;[:p (str (rc/get :plan))]
