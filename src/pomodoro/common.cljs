@@ -16,7 +16,6 @@
                  :sec        "Second"
                  :min        "Minute"})
 
-
 (defn get-key []
   (let [actual (rc/get :next-key 0)]
     (rc/set! :next-key (inc actual))

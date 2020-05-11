@@ -3,9 +3,6 @@
             [reagent.cookies :as rc]
             [pomodoro.audio :as audio]))
 
-(defn length-to-seconds [length]
-  (if (= :min (:unit @common/app-state)) (* 60 length) length))
-
 (defn get-task-in-seconds [task]
   (if (= (:unit task) :min)
     (* 60 (:length task))
@@ -22,7 +19,7 @@
           :paused            false
           :active            true
           :stop              false
-          :length-in-seconds (length-to-seconds (:length @common/app-state))}
+          :length-in-seconds (get-task-in-seconds (select-keys @common/app-state [:length :unit]))}
          task
          {:key (common/get-key)}))
 

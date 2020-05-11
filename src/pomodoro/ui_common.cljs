@@ -39,7 +39,6 @@
             :value         value}]
    [:div {:class           "dropdown-menu"
           :aria-labelledby "dropdownMenuButton"}
-
     args]])
 
 (defn swap-unit [m]
@@ -72,9 +71,9 @@
                     (dropdown-item "Minute" #(swap-unit :min)))]])
 
 (defn progress-bar []
-  (let [lenght (:length-in-seconds @common/app-state 1)
+  (let [length (:length-in-seconds @common/app-state 1)
         elapsed (:elapsed @common/app-state)
-        progress (* 100 (/ elapsed lenght))]
+        progress (* 100 (/ elapsed length))]
     [:div {:class "progress"}
      [:div {:class         "progress-bar"
             :role          "progressbar"
