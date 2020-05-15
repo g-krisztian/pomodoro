@@ -4,52 +4,73 @@
             [reagent-modals.modals :as rm]
             [pomodoro.action :as action]
             [pomodoro.ui-common :as ui]
-            [pomodoro.common :as common]
             [pomodoro.summary :as summary]
             [pomodoro.history :as history]
             [pomodoro.batch :as batch]
             [pomodoro.single-run :as single]
-            [pomodoro.time-format :as tf]))
+            [pomodoro.time-format :as tf]
+            [reagent.core :as r]))
 
 (enable-console-print!)
+
+(defn- get-key []
+  (let [actual (rc/get :next-key 0)]
+    (rc/set! :next-key (inc actual))
+    actual))
+
+(def dictionary {:summary    "Summary"
+                 :history    "History"
+                 :planning   "Batch run"
+                 :single-run "Single run"
+                 :sec        "Second"
+                 :min        "Minute"})
+
+(defonce app-state (r/atom {:get-key   get-key
+                            :dictionary dictionary
+                            :length    25
+                            :elapsed   0
+                            :task-name "Default"
+                            :now       (.getTime (js/Date.))
+                            :view      :single-run
+                            :unit      (rc/get :unit :min)}))
 
 (when-not (or (rc/get :plan) (rc/get :history)) (rc/set! :next-key 0))
 
 (defn swap-view [view]
-  (swap! common/app-state merge {:view view}))
+  (swap! app-state merge {:view view}))
 
 (defn choose-view [label]
   (let [views [:single-run :planning :history :summary]]
     [:div
-     (into [:div {:class "btn-group"}] (for [view views] (ui/button-element :active (common/dictionary view) #(swap-view view))))
+     (into [:div {:class "btn-group"}] (for [view views] (ui/button-element app-state :active (dictionary view) #(swap-view view))))
      [:p]
      (condp = label
-       :summary (summary/summary)
-       :history (history/history-table)
-       :planning (batch/planning)
-       (single/single-run))]))
+       :summary (summary/summary app-state)
+       :history (history/history-table app-state)
+       :planning (batch/planning app-state)
+       (single/single-run app-state))]))
 
-(action/reset-task)
+(action/reset-task app-state)
 
 (defn main-loop []
-  (swap! common/app-state merge [:now (.getTime (js/Date.))])
-  (when-not (:paused @common/app-state)
-    (swap! common/app-state update-in [:elapsed] inc)
-    (when (> (:elapsed @common/app-state) (:length-in-seconds @common/app-state)) (action/finish))))
+  (swap! app-state merge [:now (.getTime (js/Date.))])
+  (when-not (:paused @app-state)
+    (swap! app-state update-in [:elapsed] inc)
+    (when (> (:elapsed @app-state) (:length-in-seconds @app-state)) (action/finish app-state))))
 
 (defonce ticker
          (js/setInterval main-loop 1000))
 
 (defn set-title []
   (set! js/document.title (str "Pompdoro - "
-                               ((:view @common/app-state) common/dictionary)
+                               ((:view @app-state) dictionary)
                                " "
                                (when
-                                 (:active @common/app-state)
+                                 (:active @app-state)
                                  (str "| "
-                                      (:task-name @common/app-state)
+                                      (:task-name @app-state)
                                       ": "
-                                      (tf/render-time (* 1000 (:elapsed @common/app-state))))))))
+                                      (tf/render-time (* 1000 (:elapsed @app-state))))))))
 
 (defn applet []
   (set-title)
@@ -57,10 +78,10 @@
                      :width  "max-content"}}
    [:h1 "Pomodoro app"]
    ;   [button-element :modal "modal" #(rm/modal! [:p "semmi"])]
-   [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @common/app-state))))]
-   [:p (str @common/app-state)]
+   [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @app-state))))]
+   ;[:p (str @app-state)]
    ;[:p (str (rc/get :plan))]
-   (choose-view (:view @common/app-state))
+   (choose-view (:view @app-state))
    [rm/modal-window]])
 
 (rd/render [applet] (. js/document (getElementById "app")))

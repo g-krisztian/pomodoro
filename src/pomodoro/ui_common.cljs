@@ -1,7 +1,6 @@
 (ns pomodoro.ui-common
   (:require [pomodoro.time-format :as tf]
             [reagent.cookies :as rc]
-            [pomodoro.common :as common]
             [pomodoro.action :as action]))
 
 (defn common-button-style [value callback]
@@ -11,15 +10,16 @@
    :style    {:width "150px"}
    :on-click callback})
 
-(defn button-element [key value callback]
+(defn button-element [state key value callback]
   [:input (merge (common-button-style value callback)
-                 {:disabled (key @common/app-state)})])
+                 {:disabled (key @state)})])
 
-(defn hideable-button-element [key value callback]
-  (when-not (key @common/app-state) [:input
-                                     (common-button-style value callback)]))
-(defn swap-value [key e]
-  (swap! common/app-state merge {key (-> e .-target .-value)}))
+(defn hideable-button-element [state keyw value callback]
+  (when-not (keyw @state) [:input
+                           (common-button-style value callback)]))
+
+(defn swap-value [state key e]
+  (swap! state merge {key (-> e .-target .-value)}))
 
 (defn dropdown-item [label action]
   [:a {:type     "button"
@@ -28,51 +28,52 @@
        :key      label}
    label])
 
-(defn dropdown [value & args]
+(defn dropdown [state value & args]
   [:div {:class "dropdown"}
    [:input {:type          "button"
             :class         "btn btn-secondary dropdown-toggle"
             :data-toggle   "dropdown"
             :aria-haspopup true
             :aria-expanded false
-            :disabled      (:active @common/app-state)
+            :disabled      (:active @state)
             :value         value}]
    [:div {:class           "dropdown-menu"
           :aria-labelledby "dropdownMenuButton"}
     args]])
 
-(defn swap-unit [m]
-  (swap! common/app-state merge {:unit m})
+(defn swap-unit [state m]
+  (swap! state merge {:unit m})
   (rc/set! :unit m))
 
-(defn text-input [key action]
+(defn text-input [state key action]
   [:div {:class "input-group-prepend"}
    [:span {:class "input-group-text" :style {:min-width "150px"}} "Task name:"]
    [:input {:type             "text"
             :class            "form-control"
-            :value            (key @common/app-state)
-            :on-change        #(swap-value key %)
-            :disabled         (:active @common/app-state)
+            :value            (key @state)
+            :on-change        #(swap-value state key %)
+            :disabled         (:active @state)
             :on-key-press     action
             :aria-label       "TaskName"
             :aria-describedby "addon-wrapping"}]])
 
-(defn input-length [key action]
+(defn input-length [state key action]
   [:div {:class "input-group-prepend"}
    [:span {:class "input-group-text" :id "addon-wrapping" :style {:min-width "150px"}} "Task length:"]
    [:input {:type         "number"
             :class        "form-control"
-            :value        (key @common/app-state)
-            :on-change    #(swap-value key %)
+            :value        (key @state)
+            :on-change    #(swap-value state key %)
             :on-key-press action
-            :disabled     (:active @common/app-state)}]
-   [:span (dropdown (common/dictionary (:unit @common/app-state))
-                    (dropdown-item "Second" #(swap-unit :sec))
-                    (dropdown-item "Minute" #(swap-unit :min)))]])
+            :disabled     (:active @state)}]
+   [:span (dropdown state
+                    (get-in @state [:dictionary (@state :unit)])
+                    (dropdown-item "Second" #(swap-unit state :sec))
+                    (dropdown-item "Minute" #(swap-unit state :min)))]])
 
-(defn progress-bar []
-  (let [length (:length-in-seconds @common/app-state 1)
-        elapsed (:elapsed @common/app-state)
+(defn progress-bar [state]
+  (let [length (:length-in-seconds @state 1)
+        elapsed (:elapsed @state)
         progress (* 100 (/ elapsed length))]
     [:div {:class "progress"}
      [:div {:class         "progress-bar"
@@ -83,12 +84,12 @@
             :aria-valuenow progress}
       (tf/render-time (* 1000 elapsed))]]))
 
-(defn control-buttons []
+(defn control-buttons [state]
   [:div
    [:div {:class "btn-group" :style {:margin-top "1%"}}
-    (hideable-button-element :active "Start timer" #(action/start-button-on-click {:key ((@common/app-state :get-key))}))
-    (hideable-button-element :paused "Pause timer" action/pause-button-on-click)
-    (hideable-button-element :resume "Resume timer" action/pause-button-on-click)
-    (hideable-button-element :stop "Stop timer" action/stop-button-on-click)]
+    (hideable-button-element state :active "Start timer" #(action/start-button-on-click state {:key ((@state :get-key))}))
+    (hideable-button-element state :paused "Pause timer" #(action/pause-button-on-click state))
+    (hideable-button-element state :resume "Resume timer" #(action/pause-button-on-click state))
+    (hideable-button-element state :stop "Stop timer" #(action/stop-button-on-click state))]
    [:div {:style {:margin-top "1%"}}
-    (progress-bar)]])
+    (progress-bar state)]])
