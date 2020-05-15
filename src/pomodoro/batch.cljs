@@ -59,8 +59,8 @@
    [:h3 "Planning a batch run"]
    (ui/text-input :task-name add-to-plan-on-enter)
    (ui/input-length :length add-to-plan-on-enter)
-   (let [long-break {:task-name "Long break" :length-in-seconds 900 :length 15 :unit :min :key (str "plan_" (common/get-key))}
-         short-break {:task-name "Short break" :length-in-seconds 300 :length 5 :unit :min :key (str "plan_" (common/get-key))}]
+   (let [long-break {:task-name "Long break" :length-in-seconds 900 :length 15 :unit :min :key (str "plan_" ((@common/app-state :get-key)))}
+         short-break {:task-name "Short break" :length-in-seconds 300 :length 5 :unit :min :key (str "plan_" ((@common/app-state :get-key)))}]
      [:div {:class "btn-group"}
       (ui/button-element :active "Add task" #(add-new-task-to-plan))
       (ui/button-element :active "Add short break" #(add-to-plan short-break))

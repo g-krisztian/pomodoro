@@ -86,7 +86,7 @@
 (defn control-buttons []
   [:div
    [:div {:class "btn-group" :style {:margin-top "1%"}}
-    (hideable-button-element :active "Start timer" #(action/start-button-on-click {:key (common/get-key)}))
+    (hideable-button-element :active "Start timer" #(action/start-button-on-click {:key ((@common/app-state :get-key))}))
     (hideable-button-element :paused "Pause timer" action/pause-button-on-click)
     (hideable-button-element :resume "Resume timer" action/pause-button-on-click)
     (hideable-button-element :stop "Stop timer" action/stop-button-on-click)]

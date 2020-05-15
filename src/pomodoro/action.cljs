@@ -10,7 +10,7 @@
 
 (defn new-task []
   (let [task (select-keys @common/app-state [:task-name :length :unit])]
-    (merge task {:key (str "plan_" (common/get-key)) :length-in-seconds (get-task-in-seconds task)})))
+    (merge task {:key (str "plan_" ((@common/app-state :get-key))) :length-in-seconds (get-task-in-seconds task)})))
 
 (defn start-button-on-click [task]
   (swap! common/app-state merge
@@ -21,7 +21,7 @@
           :stop              false
           :length-in-seconds (get-task-in-seconds (select-keys @common/app-state [:length :unit]))}
          task
-         {:key (common/get-key)}))
+         {:key ((@common/app-state :get-key))}))
 
 (defn reset-task []
   (swap! common/app-state merge {:paused  true

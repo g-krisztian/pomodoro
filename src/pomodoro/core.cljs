@@ -58,7 +58,7 @@
    [:h1 "Pomodoro app"]
    ;   [button-element :modal "modal" #(rm/modal! [:p "semmi"])]
    [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @common/app-state))))]
-   ;[:p (str @common/app-state)]
+   [:p (str @common/app-state)]
    ;[:p (str (rc/get :plan))]
    (choose-view (:view @common/app-state))
    [rm/modal-window]])

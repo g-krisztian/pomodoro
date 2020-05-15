@@ -8,6 +8,7 @@
 (defn history-table []
   [:div#history
    [:h3 "History"]
+   [:p (str (rc/get :history))]
    (when (:active @common/app-state) [:div
                                       (ui/control-buttons)
                                       [:p]])

@@ -2,7 +2,13 @@
   (:require [reagent.core :as r]
             [reagent.cookies :as rc]))
 
-(defonce app-state (r/atom {:length    25
+(defn- get-key []
+  (let [actual (rc/get :next-key 0)]
+    (rc/set! :next-key (inc actual))
+    actual))
+
+(defonce app-state (r/atom {:get-key get-key
+                            :length    25
                             :elapsed   0
                             :task-name "Default"
                             :now       (.getTime (js/Date.))
@@ -16,7 +22,3 @@
                  :sec        "Second"
                  :min        "Minute"})
 
-(defn get-key []
-  (let [actual (rc/get :next-key 0)]
-    (rc/set! :next-key (inc actual))
-    actual))
