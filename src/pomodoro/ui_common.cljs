@@ -28,14 +28,14 @@
        :key      label}
    label])
 
-(defn dropdown [state value & args]
+(defn dropdown [disable value & args]
   [:div {:class "dropdown"}
    [:input {:type          "button"
             :class         "btn btn-secondary dropdown-toggle"
             :data-toggle   "dropdown"
             :aria-haspopup true
             :aria-expanded false
-            :disabled      (:active @state)
+            :disabled      disable
             :value         value}]
    [:div {:class           "dropdown-menu"
           :aria-labelledby "dropdownMenuButton"}
@@ -66,7 +66,7 @@
             :on-change    #(swap-value state key %)
             :on-key-press action
             :disabled     (:active @state)}]
-   [:span (dropdown state
+   [:span (dropdown (:active @state)
                     (get-in @state [:dictionary (@state :unit)])
                     (dropdown-item "Second" #(swap-unit state :sec))
                     (dropdown-item "Minute" #(swap-unit state :min)))]])
