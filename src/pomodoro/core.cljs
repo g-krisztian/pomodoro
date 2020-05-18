@@ -42,7 +42,7 @@
 (defn choose-view [label]
   (let [views [:single-run :planning :history :summary]]
     [:div
-     (into [:div {:class "btn-group"}] (for [view views] (ui/button-element app-state :active (dictionary view) #(swap-view view))))
+     (into [:div {:class "btn-group"}] (for [view views] (ui/button-element (@app-state :active) (dictionary view) #(swap-view view))))
      [:p]
      (condp = label
        :summary (summary/summary app-state)

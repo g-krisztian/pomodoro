@@ -10,13 +10,13 @@
    :style    {:width "150px"}
    :on-click callback})
 
-(defn button-element [state key value callback]
+(defn button-element [disabled value callback]
   [:input (merge (common-button-style value callback)
-                 {:disabled (key @state)})])
+                 {:disabled disabled})])
 
-(defn hideable-button-element [state keyw value callback]
-  (when-not (keyw @state) [:input
-                           (common-button-style value callback)]))
+(defn hideable-button-element [hide value callback]
+  (when-not hide [:input
+                  (common-button-style value callback)]))
 
 (defn swap-value [state key e]
   (swap! state merge {key (-> e .-target .-value)}))
@@ -87,9 +87,9 @@
 (defn control-buttons [state]
   [:div
    [:div {:class "btn-group" :style {:margin-top "1%"}}
-    (hideable-button-element state :active "Start timer" #(action/start-button-on-click state {:key ((@state :get-key))}))
-    (hideable-button-element state :paused "Pause timer" #(action/pause-button-on-click state))
-    (hideable-button-element state :resume "Resume timer" #(action/pause-button-on-click state))
-    (hideable-button-element state :stop "Stop timer" #(action/stop-button-on-click state))]
+    (hideable-button-element (@state :active) "Start timer" #(action/start-button-on-click state {:key ((@state :get-key))}))
+    (hideable-button-element (@state :paused) "Pause timer" #(action/pause-button-on-click state))
+    (hideable-button-element (@state :resume) "Resume timer" #(action/pause-button-on-click state))
+    (hideable-button-element (@state :stop) "Stop timer" #(action/stop-button-on-click state))]
    [:div {:style {:margin-top "1%"}}
     (progress-bar state)]])

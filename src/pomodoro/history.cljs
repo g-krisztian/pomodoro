@@ -19,7 +19,7 @@
         [:th "Start time"]
         [:th "Planned duration"]
         [:th "Real duration"]
-        [:th (ui/button-element state :active "Delete history" action/delete-history-on-click)]]]
+        [:th (ui/button-element (@state :active) "Delete history" action/delete-history-on-click)]]]
       (into [:tbody]
             (for [task (rc/get :history)]
               [:tr {:key (:key task)}
@@ -27,4 +27,4 @@
                [:td (.toLocaleString (js/Date. (:start task)))]
                [:td (tf/render-time (* 1000 (:length task)))]
                [:td (tf/render-time (:duration task))]
-               [:td (ui/button-element state :active "Restart" #(action/start-button-on-click state task))]]))])])
+               [:td (ui/button-element (@state :active) "Restart" #(action/start-button-on-click state task))]]))])])

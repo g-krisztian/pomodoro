@@ -28,4 +28,4 @@
               [:tr {:key (:task-name task)}
                [:td (:task-name task)]
                [:td (tf/render-time (:length task))]
-               [:td (ui/button-element state :active "Restart" #(action/start-button-on-click state (update-in task [:length] quot 1000)))]]))])])
+               [:td (ui/button-element (@state :active) "Restart" #(action/start-button-on-click state (update-in task [:length] quot 1000)))]]))])])
