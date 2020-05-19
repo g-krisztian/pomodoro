@@ -21,13 +21,13 @@
     (action/add-to-history state)
     (if (empty? plan)
       (action/reset-task state)
-      (action/start-plan-on-click state plan))))
+      (action/start-plan-on-click state))))
 
 (defn plan-runner [state]
   (when (rc/contains-key? :plan)
     [:div
      [:div {:class "btn-group" :style {:margin-top "1%"}}
-      (ui/hideable-button-element (@state :active) "Start batch" #(action/start-plan-on-click state (rc/get :plan [])))
+      (ui/hideable-button-element (@state :active) "Start batch" #(action/start-plan-on-click state))
       (ui/hideable-button-element (@state :paused) "Pause timer" #(action/pause-button-on-click state))
       (ui/hideable-button-element (@state :resume) "Resume timer" #(action/pause-button-on-click state))
       (when-not (empty? (:remain-plan @state)) (ui/hideable-button-element (@state :stop) "Run next" #(run-next-item state)))

@@ -59,10 +59,11 @@
 (defn delete-history-on-click []
   (rc/remove! :history))
 
-(defn start-plan-on-click [state batch]
-  (when-not (empty? batch)
-    (do (swap! state merge {:remain-plan (rest batch)})
-        (start-button-on-click state (select-keys (first batch) [:length :task-name :unit :length-in-seconds])))))
+(defn start-plan-on-click [state]
+  (let [batch (:remain-plan @state)]
+    (when-not (empty? batch)
+      (do (swap! state merge {:remain-plan (rest batch)})
+          (start-button-on-click state (select-keys (first batch) [:length :task-name :unit :length-in-seconds]))))))
 
 (defn pause-button-on-click [state]
   (swap! state update-in [:paused] not)
@@ -72,4 +73,4 @@
 (defn finish [state]
   (stop-button-on-click state)
   (audio/playback-mp3)
-  (when-not (empty? (:remain-plan @state)) (start-plan-on-click state (:remain-plan @state))))
+  (when-not (empty? (:remain-plan @state)) (start-plan-on-click state)))
