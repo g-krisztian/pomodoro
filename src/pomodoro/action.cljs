@@ -9,7 +9,8 @@
 
 (defn new-task [state]
   (let [task (select-keys @state [:task-name :length :unit])]
-    (merge task {:key (str "plan_" ((@state :get-key))) :length-in-seconds (get-task-in-seconds task)})))
+    (merge task {:key (str "plan_" ((@state :get-key)))
+                 :length-in-seconds (get-task-in-seconds task)})))
 
 (defn start-button-on-click [state task]
   (swap! state merge

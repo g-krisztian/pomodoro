@@ -34,7 +34,7 @@
       (ui/hideable-button-element (@state :stop) "Stop batch" #(action/stop-button-on-click state))]
 
      [:div {:style {:margin-top "1%"}}
-      (ui/progress-bar state)]]))
+      (ui/progress-bar @state)]]))
 
 (defn plan-table [state]
   [:div#plan

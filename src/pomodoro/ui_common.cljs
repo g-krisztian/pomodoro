@@ -71,10 +71,8 @@
                     (dropdown-item "Second" #(swap-unit state :sec))
                     (dropdown-item "Minute" #(swap-unit state :min)))]])
 
-(defn progress-bar [state]
-  (let [length (:length-in-seconds @state 1)
-        elapsed (:elapsed @state)
-        progress (* 100 (/ elapsed length))]
+(defn progress-bar [{length :length-in-seconds elapsed :elapsed :or {length 1}}]
+  (let [progress (* 100 (/ elapsed length))]
     [:div {:class "progress"}
      [:div {:class         "progress-bar"
             :role          "progressbar"
@@ -92,4 +90,4 @@
     (hideable-button-element (@state :resume) "Resume timer" #(action/pause-button-on-click state))
     (hideable-button-element (@state :stop) "Stop timer" #(action/stop-button-on-click state))]
    [:div {:style {:margin-top "1%"}}
-    (progress-bar state)]])
+    (progress-bar (@state))]])
