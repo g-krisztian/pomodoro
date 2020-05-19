@@ -85,9 +85,9 @@
 (defn control-buttons [state]
   [:div
    [:div {:class "btn-group" :style {:margin-top "1%"}}
-    (hideable-button-element (@state :active) "Start timer" #(action/start-button-on-click state {:key ((@state :get-key))}))
+    (hideable-button-element (@state :active) "Start timer" #(action/start-button-on-click state))
     (hideable-button-element (@state :paused) "Pause timer" #(action/pause-button-on-click state))
     (hideable-button-element (@state :resume) "Resume timer" #(action/pause-button-on-click state))
     (hideable-button-element (@state :stop) "Stop timer" #(action/stop-button-on-click state))]
    [:div {:style {:margin-top "1%"}}
-    (progress-bar (@state))]])
+    (progress-bar @state)]])

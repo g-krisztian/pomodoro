@@ -12,16 +12,19 @@
     (merge task {:key (str "plan_" ((@state :get-key)))
                  :length-in-seconds (get-task-in-seconds task)})))
 
-(defn start-button-on-click [state task]
+(defn start-button-on-click [state]
   (swap! state merge
          {:start-time        (.getTime (js/Date.))
           :elapsed           0
           :paused            false
           :active            true
           :stop              false
-          :length-in-seconds (get-task-in-seconds (select-keys @state [:length :unit]))}
-         task
-         {:key ((@state :get-key))}))
+          :length-in-seconds (get-task-in-seconds @state)
+          :key ((@state :get-key))}))
+
+(defn restart [state task]
+  (swap! state merge (select-keys task [:length :task-name :unit :length-in-seconds]))
+  (start-button-on-click state))
 
 (defn reset-task [state]
   (swap! state merge {:paused  true
@@ -51,7 +54,7 @@
   (reset-task state))
 
 (defn run-new-task [state]
-  (start-button-on-click state (new-task state)))
+  (start-button-on-click state))
 
 (defn start-on-enter [event state]
   (when (= 13 (.-charCode event)) (run-new-task state)))
@@ -59,11 +62,12 @@
 (defn delete-history-on-click []
   (rc/remove! :history))
 
-(defn start-plan-on-click [state]
+(defn run-plan [state]
   (let [batch (:remain-plan @state)]
     (when-not (empty? batch)
-      (do (swap! state merge {:remain-plan (rest batch)})
-          (start-button-on-click state (select-keys (first batch) [:length :task-name :unit :length-in-seconds]))))))
+      (let [task (select-keys (first batch) [:length :task-name :unit :length-in-seconds])]
+        (swap! state merge {:remain-plan (rest batch)} task)
+        (start-button-on-click state)))))
 
 (defn pause-button-on-click [state]
   (swap! state update-in [:paused] not)
@@ -73,4 +77,4 @@
 (defn finish [state]
   (stop-button-on-click state)
   (audio/playback-mp3)
-  (when-not (empty? (:remain-plan @state)) (start-plan-on-click state)))
+  (when-not (empty? (:remain-plan @state)) (run-plan state)))

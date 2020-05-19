@@ -58,7 +58,8 @@
     (swap! app-state update-in [:elapsed] inc)
     (when (> (:elapsed @app-state) (:length-in-seconds @app-state)) (action/finish app-state))))
 
-(js/setInterval main-loop 1000)
+(defonce ticker
+         (js/setInterval main-loop 1000))
 
 (defn set-title []
   (set! js/document.title (str "Pompdoro - "
