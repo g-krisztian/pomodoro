@@ -28,7 +28,7 @@
        :key      label}
    label])
 
-(defn dropdown [disable value & args]
+(defn dropdown [disable value & items]
   [:div {:class "dropdown"}
    [:input {:type          "button"
             :class         "btn btn-secondary dropdown-toggle"
@@ -39,7 +39,7 @@
             :value         value}]
    [:div {:class           "dropdown-menu"
           :aria-labelledby "dropdownMenuButton"}
-    args]])
+    items]])
 
 (defn swap-unit [state m]
   (swap! state merge {:unit m})
