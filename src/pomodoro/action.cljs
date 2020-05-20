@@ -71,15 +71,11 @@
   (add-to-history state)
   (reset-task state))
 
-(defn run-new-task [state]
-  (start-button-on-click state))
-
 (defn start-on-enter [event state]
-  (when (= 13 (.-charCode event)) (run-new-task state)))
+  (when (= 13 (.-charCode event)) (start-button-on-click state)))
 
 (defn delete-history-on-click []
   (rc/remove! :history))
-
 
 (defn pause-button-on-click [state]
   (swap! state update-in [:paused] not)
