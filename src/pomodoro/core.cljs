@@ -9,13 +9,14 @@
             [pomodoro.batch :as batch]
             [pomodoro.single-run :as single]
             [pomodoro.time-format :as tf]
+            [pomodoro.cookie-storage :as storage]
             [reagent.core :as r]))
 
 (enable-console-print!)
 
 (defn- get-key []
-  (let [actual (rc/get :next-key 0)]
-    (rc/set! :next-key (inc actual))
+  (let [actual (or (storage/get-next-key) 0)]
+    (storage/set-next-key (inc actual))
     actual))
 
 (def dictionary {:summary    "Summary"
@@ -32,9 +33,9 @@
                             :task-name "Default"
                             :now       (.getTime (js/Date.))
                             :view      :single-run
-                            :unit      (rc/get :unit :min)}))
+                            :unit      (or (storage/get-unit) :min)}))
 
-(when-not (or (rc/get :plan) (rc/get :history)) (rc/set! :next-key 0))
+(when-not (or (storage/get-plan) (storage/get-history)) (storage/set-next-key 0))
 
 (defn swap-view [view]
   (swap! app-state merge {:view view}))
@@ -80,7 +81,7 @@
    ;   [button-element :modal "modal" #(rm/modal! [:p "semmi"])]
    [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @app-state))))]
    ;[:p (str @app-state)]
-   ;[:p (str (rc/get :plan))]
+   ;[:p (str (storage/get-plan))]
    (choose-view (:view @app-state))
    [rm/modal-window]])
 

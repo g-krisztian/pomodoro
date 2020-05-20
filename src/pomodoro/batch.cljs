@@ -1,11 +1,11 @@
 (ns pomodoro.batch
   (:require [pomodoro.ui-common :as ui]
-            [reagent.cookies :as rc]
             [pomodoro.time-format :as tf]
-            [pomodoro.action :as action]))
+            [pomodoro.action :as action]
+            [pomodoro.cookie-storage :as storage]))
 
 (defn add-to-plan [task]
-  (rc/set! :plan (conj (rc/get :plan []) task)))
+  (storage/set-plan (conj (or (storage/get-plan) []) task)))
 
 (defn add-new-task-to-plan [state]
   (add-to-plan (action/new-task state)))
@@ -24,7 +24,7 @@
       (action/run-plan state))))
 
 (defn plan-runner [state]
-  (when (rc/contains-key? :plan)
+  (when (storage/contains-plan?)
     [:div
      [:div {:class "btn-group" :style {:margin-top "1%"}}
       (ui/hideable-button-element (@state :active) "Start batch" #(action/start-plan state))
@@ -37,19 +37,19 @@
 
 (defn plan-table [state]
   [:div#plan
-   (when (rc/contains-key? :plan)
+   (when (storage/contains-plan?)
      [:table {:class "table table-striped table-bordered" :id "summary"}
       [:thead {:class "thead-dark"}
        [:tr
         [:th "Task name"]
-        [:th (str "Planned time: " (tf/render-time (* 1000 (reduce + (map long (map :length-in-seconds (rc/get :plan)))))))]
-        [:th (ui/button-element (@state :active) "Clear plan" #(rc/remove! :plan))]]]
+        [:th (str "Planned time: " (tf/render-time (* 1000 (reduce + (map long (map :length-in-seconds (storage/get-plan)))))))]
+        [:th (ui/button-element (@state :active) "Clear plan" #(storage/delete-plan))]]]
       (into [:tbody]
-            (for [task (rc/get :plan)]
+            (for [task (storage/get-plan)]
               [:tr {:key (:key task)}
                [:td (:task-name task)]
                [:td (tf/render-time (get-task-in-milisec task))]
-               [:td (ui/button-element (@state :active) "Remove" #(rc/set! :plan (remove (fn [t] (= t task)) (rc/get :plan))))]]))])])
+               [:td (ui/button-element (@state :active) "Remove" #(storage/set-plan (remove (fn [t] (= t task)) (storage/get-plan))))]]))])])
 
 (defn short-break [state]
   (add-to-plan {:task-name "Short break"

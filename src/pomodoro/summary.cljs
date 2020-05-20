@@ -1,11 +1,11 @@
 (ns pomodoro.summary
   (:require [pomodoro.time-format :as tf]
             [pomodoro.ui-common :as ui]
-            [reagent.cookies :as rc]
-            [pomodoro.action :as action]))
+            [pomodoro.action :as action]
+            [pomodoro.cookie-storage :as storage]))
 
 (defn sum-usage []
-  (->> (rc/get :history)
+  (->> (storage/get-history)
        (group-by :task-name)
        (map (fn [[task-name v]] (let [length (reduce + (for [d v] (:duration d)))]
                                   {:task-name task-name
@@ -16,7 +16,7 @@
    (when (:active @state) [:div
                            (ui/control-buttons state)
                            [:p]])
-   (when (rc/contains-key? :history)
+   (when (storage/contains-history?)
      [:table {:class "table table-striped table-bordered" :id "summary"}
       [:thead {:class "thead-dark"}
        [:tr

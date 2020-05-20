@@ -1,6 +1,6 @@
 (ns pomodoro.action
-  (:require [reagent.cookies :as rc]
-            [pomodoro.audio :as audio]))
+  (:require [pomodoro.audio :as audio]
+            [pomodoro.cookie-storage :as storage]))
 
 (defn get-task-in-seconds [task]
   (if (= (:unit task) :min)
@@ -17,7 +17,7 @@
 
 (defn swap-unit [state m]
   (swap! state merge {:unit m})
-  (rc/set! :unit m))
+  (storage/set-unit m))
 
 (defn run-plan [state]
   (let [batch (:remain-plan @state)]
@@ -27,7 +27,7 @@
         (start-button-on-click state)))))
 
 (defn start-plan [state]
-  (swap! state merge {:remain-plan (rc/get :plan [])})
+  (swap! state merge {:remain-plan (or (storage/get-plan) [])})
   (run-plan state))
 
 (defn start-button-on-click [state]
@@ -59,8 +59,8 @@
     (if (:paused @state false) paused-duration real-duration)))
 
 (defn add-to-history [state]
-  (rc/set! :history
-           (conj (rc/get :history)
+  (storage/set-history
+           (conj (storage/get-history)
                  {:task-name (:task-name @state)
                   :length    (:length-in-seconds @state)
                   :start     (:start-time @state)
@@ -75,7 +75,7 @@
   (when (= 13 (.-charCode event)) (start-button-on-click state)))
 
 (defn delete-history-on-click []
-  (rc/remove! :history))
+  (storage/delete-history))
 
 (defn pause-button-on-click [state]
   (swap! state update-in [:paused] not)
