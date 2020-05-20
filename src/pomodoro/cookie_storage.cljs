@@ -33,7 +33,7 @@
   (rc/set! :history h))
 
 (defn delete-history []
-  rc/remove! :history)
+  (rc/remove! :history))
 
 (defn contains-history? []
   (rc/contains-key? :history))

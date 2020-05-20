@@ -19,6 +19,16 @@
   (swap! state merge {:unit m})
   (storage/set-unit m))
 
+(defn start-button-on-click [state]
+  (swap! state merge
+         {:start-time        (.getTime (js/Date.))
+          :elapsed           0
+          :paused            false
+          :active            true
+          :stop              false
+          :length-in-seconds (get-task-in-seconds @state)
+          :key ((@state :get-key))}))
+
 (defn run-plan [state]
   (let [batch (:remain-plan @state)]
     (when-not (empty? batch)
@@ -29,16 +39,6 @@
 (defn start-plan [state]
   (swap! state merge {:remain-plan (or (storage/get-plan) [])})
   (run-plan state))
-
-(defn start-button-on-click [state]
-  (swap! state merge
-         {:start-time        (.getTime (js/Date.))
-          :elapsed           0
-          :paused            false
-          :active            true
-          :stop              false
-          :length-in-seconds (get-task-in-seconds @state)
-          :key ((@state :get-key))}))
 
 (defn restart [state task]
   (swap! state merge (select-keys task [:length :task-name :unit :length-in-seconds]))
