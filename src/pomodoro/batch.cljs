@@ -38,18 +38,19 @@
 (defn plan-table [state]
   [:div#plan
    (when (storage/contains-plan?)
-     [:table {:class "table table-striped table-bordered" :id "summary"}
-      [:thead {:class "thead-dark"}
-       [:tr
-        [:th "Task name"]
-        [:th (str "Planned time: " (tf/render-time (* 1000 (reduce + (map long (map :length-in-seconds (storage/get-plan)))))))]
-        [:th (ui/button-element (@state :active) "Clear plan" #(storage/delete-plan))]]]
-      (into [:tbody]
-            (for [task (storage/get-plan)]
-              [:tr {:key (:key task)}
-               [:td (:task-name task)]
-               [:td (tf/render-time (get-task-in-milisec task))]
-               [:td (ui/button-element (@state :active) "Remove" #(storage/set-plan (remove (fn [t] (= t task)) (storage/get-plan))))]]))])])
+     (let [plan (storage/get-plan)]
+       [:table {:class "table table-striped table-bordered" :id "summary"}
+        [:thead {:class "thead-dark"}
+         [:tr
+          [:th "Task name"]
+          [:th (str "Planned time: " (tf/render-time (* 1000 (reduce + (map long (map :length-in-seconds plan))))))]
+          [:th (ui/button-element (@state :active) "Clear plan" #(storage/delete-plan))]]]
+        (into [:tbody]
+              (for [task plan]
+                [:tr {:key (:key task)}
+                 [:td (:task-name task)]
+                 [:td (tf/render-time (get-task-in-milisec task))]
+                 [:td (ui/button-element (@state :active) "Remove" #(storage/set-plan (remove (fn [t] (= t task)) plan)))]]))]))])
 
 (defn short-break [state]
   (add-to-plan {:task-name "Short break"
