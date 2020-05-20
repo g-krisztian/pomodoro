@@ -23,15 +23,11 @@
       (action/reset-task state)
       (action/run-plan state))))
 
-(defn start-plan [state]
-  (swap! state merge {:remain-plan (rc/get :plan [])})
-  (action/run-plan state))
-
 (defn plan-runner [state]
   (when (rc/contains-key? :plan)
     [:div
      [:div {:class "btn-group" :style {:margin-top "1%"}}
-      (ui/hideable-button-element (@state :active) "Start batch" #(start-plan state))
+      (ui/hideable-button-element (@state :active) "Start batch" #(action/start-plan state))
       (ui/hideable-button-element (@state :paused) "Pause timer" #(action/pause-button-on-click state))
       (ui/hideable-button-element (@state :resume) "Resume timer" #(action/pause-button-on-click state))
       (when-not (empty? (:remain-plan @state)) (ui/hideable-button-element (@state :stop) "Run next" #(run-next-item state)))

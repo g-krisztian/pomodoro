@@ -18,9 +18,6 @@
   (when-not hide [:input
                   (common-button-style value callback)]))
 
-(defn swap-value [state key e]
-  (swap! state merge {key (-> e .-target .-value)}))
-
 (defn dropdown-item [label action]
   [:a {:type     "button"
        :class    "dropdown-item"
@@ -41,17 +38,13 @@
           :aria-labelledby "dropdownMenuButton"}
     items]])
 
-(defn swap-unit [state m]
-  (swap! state merge {:unit m})
-  (rc/set! :unit m))
-
 (defn text-input [state key action]
   [:div {:class "input-group-prepend"}
    [:span {:class "input-group-text" :style {:min-width "150px"}} "Task name:"]
    [:input {:type             "text"
             :class            "form-control"
             :value            (key @state)
-            :on-change        #(swap-value state key %)
+            :on-change        #(action/swap-value state key %)
             :disabled         (:active @state)
             :on-key-press     action
             :aria-label       "TaskName"
@@ -63,13 +56,13 @@
    [:input {:type         "number"
             :class        "form-control"
             :value        (key @state)
-            :on-change    #(swap-value state key %)
+            :on-change    #(action/swap-value state key %)
             :on-key-press action
             :disabled     (:active @state)}]
    [:span (dropdown (:active @state)
                     (get-in @state [:dictionary (@state :unit)])
-                    (dropdown-item "Second" #(swap-unit state :sec))
-                    (dropdown-item "Minute" #(swap-unit state :min)))]])
+                    (dropdown-item "Second" #(action/swap-unit state :sec))
+                    (dropdown-item "Minute" #(action/swap-unit state :min)))]])
 
 (defn progress-bar [{length :length-in-seconds elapsed :elapsed :or {length 1}}]
   (let [progress (* 100 (/ elapsed length))]

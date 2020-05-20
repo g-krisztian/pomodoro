@@ -12,6 +12,24 @@
     (merge task {:key (str "plan_" ((@state :get-key)))
                  :length-in-seconds (get-task-in-seconds task)})))
 
+(defn swap-value [state key e]
+  (swap! state merge {key (-> e .-target .-value)}))
+
+(defn swap-unit [state m]
+  (swap! state merge {:unit m})
+  (rc/set! :unit m))
+
+(defn run-plan [state]
+  (let [batch (:remain-plan @state)]
+    (when-not (empty? batch)
+      (let [task (select-keys (first batch) [:length :task-name :unit :length-in-seconds])]
+        (swap! state merge {:remain-plan (rest batch)} task)
+        (start-button-on-click state)))))
+
+(defn start-plan [state]
+  (swap! state merge {:remain-plan (rc/get :plan [])})
+  (run-plan state))
+
 (defn start-button-on-click [state]
   (swap! state merge
          {:start-time        (.getTime (js/Date.))
@@ -62,12 +80,6 @@
 (defn delete-history-on-click []
   (rc/remove! :history))
 
-(defn run-plan [state]
-  (let [batch (:remain-plan @state)]
-    (when-not (empty? batch)
-      (let [task (select-keys (first batch) [:length :task-name :unit :length-in-seconds])]
-        (swap! state merge {:remain-plan (rest batch)} task)
-        (start-button-on-click state)))))
 
 (defn pause-button-on-click [state]
   (swap! state update-in [:paused] not)
