@@ -1,39 +1,60 @@
 (ns pomodoro.cookie-storage
-  (:require [reagent.cookies]
-            [reagent.cookies :as rc]))
+  (:require [reagent.cookies :as rc]
+            [reagent.core :as r]))
+
+(defonce cache (r/atom {}))
+
+(defn update-cache [k v]
+  (swap! cache merge {k v}))
+
+(defn get-n-cache [k]
+  (let [v (rc/get k)]
+    (update-cache k v)
+    v))
+
+(defn get-by-key [k]
+  (or (k cache) (get-n-cache k)))
+
+(defn set-by-key [k v]
+  (rc/set! k v)
+  (update-cache k v))
+
+(defn delete [k]
+  (swap! cache dissoc k)
+  (rc/remove! k))
 
 (defn get-next-key []
-  (rc/get :next-key))
+  (get-by-key :next-key))
 
 (defn set-next-key [k]
-  (rc/set! :next-key k))
+  (set-by-key :next-key k))
 
 (defn get-unit []
-  (rc/get :unit))
+  (get-by-key :unit))
 
 (defn set-unit [u]
-  (rc/set! :unit u))
+  (set-by-key :unit u))
 
 (defn get-plan []
-  (rc/get :plan))
+  (get-by-key :plan))
 
 (defn set-plan [p]
-  (rc/set! :plan p))
+  (set-by-key :plan p))
 
 (defn contains-plan? []
-  (rc/contains-key? :plan))
+  (not-empty (get-by-key :plan)))
 
 (defn delete-plan []
-  (rc/remove! :plan))
+  (delete :plan))
 
 (defn get-history []
-  (rc/get :history))
+  (get-by-key :history))
 
 (defn set-history [h]
-  (rc/set! :history h))
+  (set-by-key :history h))
 
 (defn delete-history []
-  (rc/remove! :history))
+  (delete :history))
 
 (defn contains-history? []
-  (rc/contains-key? :history))
+  (not-empty (get-by-key :history)))
