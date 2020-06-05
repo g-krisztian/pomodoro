@@ -1,6 +1,5 @@
 (ns pomodoro.ui-common
   (:require [pomodoro.time-format :as tf]
-            [reagent.cookies :as rc]
             [pomodoro.action :as action]))
 
 (defn common-button-style [value callback]

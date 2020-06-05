@@ -1,6 +1,5 @@
 (ns pomodoro.core
   (:require [reagent.dom :as rd]
-            [reagent.cookies :as rc]
             [reagent-modals.modals :as rm]
             [pomodoro.action :as action]
             [pomodoro.ui-common :as ui]
