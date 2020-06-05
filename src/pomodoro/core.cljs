@@ -14,11 +14,6 @@
 
 (enable-console-print!)
 
-(defn- get-key []
-  (let [actual (or (storage/get-next-key) 0)]
-    (storage/set-next-key (inc actual))
-    actual))
-
 (def dictionary {:summary    "Summary"
                  :history    "History"
                  :planning   "Batch run"
@@ -26,7 +21,7 @@
                  :sec        "Second"
                  :min        "Minute"})
 
-(defonce app-state (r/atom {:get-key   get-key
+(defonce app-state (r/atom {:get-key   storage/get-key
                             :dictionary dictionary
                             :length    25
                             :elapsed   0

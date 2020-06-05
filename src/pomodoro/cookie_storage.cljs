@@ -58,3 +58,8 @@
 
 (defn contains-history? []
   (not-empty (get-by-key :history)))
+
+(defn get-key []
+  (let [actual (or (get-next-key) 0)]
+    (set-next-key (inc actual))
+    actual))
