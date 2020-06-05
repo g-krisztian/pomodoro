@@ -35,16 +35,19 @@
 (defn swap-view [view]
   (swap! app-state merge {:view view}))
 
-(defn choose-view [label]
+(defn show-view [state]
+  (condp = (:view @state)
+    :summary (summary/summary state)
+    :history (history/history-table state)
+    :planning (batch/planning state)
+    (single/single-run state)))
+
+(defn choose-view [state]
   (let [views [:single-run :planning :history :summary]]
     [:div
-     (into [:div {:class "btn-group"}] (for [view views] (ui/button-element (@app-state :active) (dictionary view) #(swap-view view))))
-     [:p]
-     (condp = label
-       :summary (summary/summary app-state)
-       :history (history/history-table app-state)
-       :planning (batch/planning app-state)
-       (single/single-run app-state))]))
+     (into [:div {:class "btn-group"}] (for [view views] (ui/button-element (@state :active) (dictionary view) #(swap-view view))))
+     [:p]]))
+
 
 (action/reset-task app-state)
 
@@ -77,8 +80,8 @@
    [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @app-state))))]
    ;[:p (str @app-state)]
    ;[:p (str (storage/get-plan))]
-   (choose-view (:view @app-state))
+   (choose-view app-state)
+   (show-view app-state)
    [rm/modal-window]])
 
 (rd/render [applet] (. js/document (getElementById "app")))
-

@@ -1,4 +1,7 @@
-^{:watch-dirs ["src"]
+^{:watch-dirs ["src" "test"]
   :css-dirs ["resources/public/css"]
-  :auto-testing true}
-{:main pomodoro.core}
+  :auto-testing true
+  :extra-main-files {:cards {:main pomodoro.cards}
+                     :tests {:main pomodoro.core-tests}}}
+{:main pomodoro.core
+ :devcards true}

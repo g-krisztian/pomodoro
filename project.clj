@@ -11,11 +11,12 @@
                  [org.clojure/core.async  "0.4.500"]
                  [reagent "0.10.0"]
                  [reagent-utils "0.3.3"]
+                 [devcards "0.2.7"]
                  [org.clojars.frozenlock/reagent-modals "0.2.8"]
                  [cljs-bach "0.3.0"]
                  [com.cognitect/transit-cljs "0.8.256"]]
 
-  :source-paths ["src"]
+  :source-paths ["src" "test"]
   :resource-paths ["resources" "target"]
   :clean-targets ^{:protect false} [:target-path "target" "resources/public/cljs-out"]
 
@@ -24,4 +25,5 @@
             "fig:min"   ["run" "-m" "figwheel.main" "-O" "advanced" "-bo" "dev"]}
 
   :profiles {:dev {:dependencies [[com.bhauman/figwheel-main "0.2.3"]
-                                  [com.bhauman/rebel-readline-cljs "0.1.4"]]}})
+                                  [com.bhauman/rebel-readline-cljs "0.1.4"]
+                                  [devcards "0.2.7"]]}})
