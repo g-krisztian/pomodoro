@@ -18,6 +18,11 @@ To get an interactive development environment run:
     lein fig:build
 
 and open your browser at [localhost:9500](http://localhost:9500/).
+
+For devcards interface open [localhost:9500/cards.html](http://localhost:9500/cards.html),
+for tests [http://localhost:9500/figwheel-extra-main/auto-testing](http://localhost:9500/figwheel-extra-main/auto-testing).
+
+
 This will auto compile and send all changes to the browser without the
 need to reload. After the compilation process is complete, you will
 get a Browser Connected REPL. An easy way to try it is:
