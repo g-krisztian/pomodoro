@@ -36,35 +36,34 @@
       (ui/progress-bar @state)]]))
 
 (defn plan-table [state]
-  [:div#plan
-   (when (storage/contains-plan?)
-     (let [plan (storage/get-plan)]
-       [:table {:class "table table-striped table-bordered" :id "summary"}
-        [:thead {:class "thead-dark"}
-         [:tr
-          [:th "Task name"]
-          [:th (str "Planned time: " (tf/render-time (* 1000 (reduce + (map long (map :length-in-seconds plan))))))]
-          [:th (ui/button-element (@state :active) "Clear plan" #(storage/delete-plan))]]]
-        (into [:tbody]
-              (for [task plan]
-                [:tr {:key (:key task)}
-                 [:td (:task-name task)]
-                 [:td (tf/render-time (get-task-in-milisec task))]
-                 [:td (ui/button-element (@state :active) "Remove" #(storage/set-plan (remove (fn [t] (= t task)) plan)))]]))]))])
+  (let [plan (or (storage/get-plan) [])]
+   [:div#plan
+    [:table {:class "table table-striped table-bordered" :id "summary"}
+     [:thead {:class "thead-dark"}
+      [:tr
+       [:th "Task name"]
+       [:th (str "Planned time: " (tf/render-time (* 1000 (reduce + (map long (map :length-in-seconds plan))))))]
+       [:th (ui/button-element (@state :active) "Clear plan" #(storage/delete-plan))]]]
+     (into [:tbody]
+           (for [task plan]
+             [:tr {:key (:key task)}
+              [:td (:task-name task)]
+              [:td (tf/render-time (get-task-in-milisec task))]
+              [:td (ui/button-element (@state :active) "Remove" #(storage/set-plan (remove (fn [t] (= t task)) plan)))]]))]]))
 
 (defn short-break [state]
-  (add-to-plan {:task-name "Short break"
+  (add-to-plan {:task-name         "Short break"
                 :length-in-seconds 300
-                :length 5
-                :unit :min
-                :key (str "plan_" ((@state :get-key)))}))
+                :length            5
+                :unit              :min
+                :key               (str "plan_" ((@state :get-key)))}))
 
 (defn long-break [state]
-  (add-to-plan {:task-name "Long break"
+  (add-to-plan {:task-name         "Long break"
                 :length-in-seconds 900
-                :length 15
-                :unit :min
-                :key (str "plan_" ((@state :get-key)))}))
+                :length            15
+                :unit              :min
+                :key               (str "plan_" ((@state :get-key)))}))
 
 (defn planning [state]
   [:div
