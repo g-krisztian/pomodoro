@@ -3,25 +3,27 @@
             [reagent.core :as r]))
 
 (defonce cache (r/atom {}))
+(defonce source (r/atom :pomodoro))
 
 (defn update-cache [k v]
-  (swap! cache merge {k v}))
+  (swap! cache assoc k v))
 
 (defn get-n-cache [k]
-  (let [v (rc/get k)]
+  (let [v (get (rc/get @source) k)]
     (update-cache k v)
     v))
 
 (defn get-by-key [k]
-  (or (k cache) (get-n-cache k)))
+  (or (get cache k) (get-n-cache k)))
 
 (defn set-by-key [k v]
-  (rc/set! k v)
-  (update-cache k v))
+  (let [cache (update-cache k v)]
+    (rc/set! @source cache)))
 
 (defn delete [k]
-  (swap! cache dissoc k)
-  (rc/remove! k))
+  (->>
+    (swap! cache dissoc k)
+    (rc/set! @source)))
 
 (defn get-next-key []
   (get-by-key :next-key))
@@ -56,10 +58,13 @@
 (defn delete-history []
   (delete :history))
 
-(defn contains-history? []
-  (not-empty (get-by-key :history)))
-
 (defn get-key []
   (let [actual (or (get-next-key) 0)]
     (set-next-key (inc actual))
     actual))
+
+(defn init [s]
+  (reset! source s)
+  (reset! cache (rc/get @source))
+  (when-not (and (get-plan) (get-history))
+    (set-next-key 0)))

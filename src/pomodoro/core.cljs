@@ -11,7 +11,7 @@
             [pomodoro.cookie-storage :as storage]
             [reagent.core :as r]))
 
-(enable-console-print!)
+(storage/init :pomodoro)
 
 (def dictionary {:summary    "Summary"
                  :history    "History"
@@ -29,7 +29,6 @@
                             :view      :single-run
                             :unit      (or (storage/get-unit) :min)}))
 
-(when-not (or (storage/get-plan) (storage/get-history)) (storage/set-next-key 0))
 
 (defn swap-view [view]
   (swap! app-state merge {:view view}))
@@ -50,14 +49,14 @@
 
 (action/reset-task app-state)
 
-(defn main-loop []
-  (swap! app-state merge [:now (.getTime (js/Date.))])
-  (when-not (:paused @app-state)
-    (swap! app-state update-in [:elapsed] inc)
-    (when (> (:elapsed @app-state) (:length-in-seconds @app-state)) (action/finish app-state))))
+(defn main-loop [state]
+  (swap! state merge [:now (.getTime (js/Date.))])
+  (when-not (:paused @state)
+    (swap! state update-in [:elapsed] inc)
+    (when (> (:elapsed @state) (:length-in-seconds @state)) (action/finish state))))
 
 (defonce ticker
-         (js/setInterval main-loop 1000))
+         (js/setInterval #(main-loop app-state) 1000))
 
 (defn set-title []
   (set! js/document.title (str "Pompdoro - "
@@ -78,6 +77,7 @@
    ;   [button-element :modal "modal" #(rm/modal! [:p "semmi"])]
    [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @app-state))))]
    ;[:p (str @app-state)]
+   [:p @storage/source]
    ;[:p (str (storage/get-plan))]
    (choose-view app-state)
    (show-view app-state)
