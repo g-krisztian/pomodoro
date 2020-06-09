@@ -8,7 +8,7 @@
   (storage/set-plan (conj (or (storage/get-plan) []) task)))
 
 (defn add-new-task-to-plan [state]
-  (add-to-plan (action/new-task state)))
+  (add-to-plan (action/new-plan state)))
 
 (defn add-to-plan-on-enter [event state]
   (when (= 13 (.-charCode event)) (add-new-task-to-plan state)))

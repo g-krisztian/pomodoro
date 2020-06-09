@@ -7,7 +7,7 @@
     (* 60 (:length task))
     (:length task)))
 
-(defn new-task [state]
+(defn new-plan [state]
   (let [task (select-keys @state [:task-name :length :unit])]
     (merge task {:key (str "plan_" ((@state :get-key)))
                  :length-in-seconds (get-task-in-seconds task)})))
@@ -16,8 +16,8 @@
   (swap! state merge {key (-> e .-target .-value)}))
 
 (defn swap-unit [state m]
-  (swap! state merge {:unit m})
-  (storage/set-unit m))
+  (storage/set-unit m)
+  (swap! state merge {:unit m}))
 
 (defn start-button-on-click [state]
   (swap! state merge
