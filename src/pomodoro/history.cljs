@@ -22,7 +22,7 @@
           [:th "Start time"]
           [:th "Planned duration"]
           [:th "Real duration"]
-          [:th (ui/button-element (@state :active) "Delete history" action/delete-history-on-click)]]]
+          [:th (ui/button-element (@state :active) "Delete history" storage/delete-history)]]]
         (into [:tbody]
               (for [task history]
                 [:tr {:key (:key task)}

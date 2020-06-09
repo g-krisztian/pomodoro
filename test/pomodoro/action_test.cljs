@@ -59,7 +59,7 @@
               :key               "plan_3"
               :length-in-seconds 61}
         state (r/atom {:remain-plan [task]
-                       :get-key keygen})]
+                       :get-key     keygen})]
     (action/run-plan state)
     (are [x y] (= (get @state x) y)
                :paused false
@@ -96,5 +96,81 @@
                :length 61
                :elapsed 0))
   (pomodoro.cookie-storage/delete-plan))
+
+(deftest restart
+  (let [keygen #(int 1)
+        task {:task-name         "task-name"
+              :length            61
+              :unit              :sec
+              :key               "history_4"
+              :length-in-seconds 61}
+        state (r/atom {:get-key keygen})]
+    (action/restart state task)
+    (are [x y] (= (get @state x) y)
+               :paused false
+               :key 1
+               :length-in-seconds 61
+               :unit :sec
+               :task-name "task-name"
+               :stop false
+               :active true
+               :length 61
+               :elapsed 0)
+    (is (int? (:start-time @state)))))
+
+(deftest reset-task
+  (is (= {:paused  true
+          :active  false
+          :stop    true
+          :resume  true
+          :elapsed 0}
+         (action/reset-task (atom {}))))
+  (is (= {:paused  true
+          :active  false
+          :stop    true
+          :resume  true
+          :elapsed 0
+          :length  1
+          :unit    :sec}
+         (action/reset-task (atom {:length 1 :unit :sec})))))
+
+(deftest get-real-duration
+  (is (= 200 (action/get-real-duration (r/atom {:start-time 0}) 200)))
+  (is (= 200 (action/get-real-duration (r/atom {:start-time  0
+                                                :paused-time 100
+                                                :paused      false}) 200)))
+  (is (= 100 (action/get-real-duration (r/atom {:start-time  0
+                                                :paused-time 100
+                                                :paused      true}) 200))))
+
+(deftest add-to-history
+  (pomodoro.cookie-storage/delete-history)
+  (action/add-to-history (r/atom {:task-name         "task-name"
+                                  :length-in-seconds 61
+                                  :start-time        0
+                                  :key               0
+                                  :duration          200}) 200)
+  (let [history (pomodoro.cookie-storage/get-history)]
+    (are [k v] (= (get (first history) k) v)
+               :task-name "task-name"
+               :length 61
+               :start 0
+               :key "history_0"
+               :duration 200))
+  (pomodoro.cookie-storage/delete-history))
+
+(deftest pause-button-on-click
+  (let [state (atom {})]
+    (action/pause-button-on-click state)
+    (is (:paused @state))
+    (is (:resume @state))
+    (is (int? (:paused-time @state))))
+
+  (let [state (atom {:paused true
+                     :resume true})]
+    (action/pause-button-on-click state)
+    (is (not (:paused @state)))
+    (is (not (:resume @state)))
+    (is (int? (:paused-time @state)))))
 
 (run-tests)
