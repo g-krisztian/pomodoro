@@ -18,7 +18,7 @@
 
 (defn run-next-item [state]
   (let [plan (:remain-plan @state)]
-    (action/add-to-history state)
+    (action/add-to-history state (.getTime (js/Date.)))
     (if (empty? plan)
       (action/reset-task state)
       (action/run-plan state))))
@@ -36,7 +36,7 @@
       (ui/progress-bar @state)]]))
 
 (defn plan-table [state]
-  (let [plan (or (storage/get-plan) [])]
+  (when-let [plan (storage/get-plan)]
    [:div#plan
     [:table {:class "table table-striped table-bordered" :id "summary"}
      [:thead {:class "thead-dark"}
