@@ -66,7 +66,7 @@
                 :key               (str "plan_" ((@state :get-key)))}))
 
 (defn planning [state]
-  [:div
+  [:div#planning
    [:h3 "Planning a batch run"]
    (ui/text-input state :task-name #(add-to-plan-on-enter % state))
    (ui/input-length state :length #(add-to-plan-on-enter % state))

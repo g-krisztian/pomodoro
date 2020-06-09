@@ -30,8 +30,8 @@
                             :unit      (or (storage/get-unit) :min)}))
 
 
-(defn swap-view [view]
-  (swap! app-state merge {:view view}))
+(defn swap-view [state view]
+  (swap! state merge {:view view}))
 
 (defn show-view [state]
   (condp = (:view @state)
@@ -43,7 +43,7 @@
 (defn choose-view [state]
   (let [views [:single-run :planning :history :summary]]
     [:div
-     (into [:div {:class "btn-group"}] (for [view views] (ui/button-element (@state :active) (dictionary view) #(swap-view view))))
+     (into [:div {:class "btn-group"}] (for [view views] (ui/button-element (@state :active) (dictionary view) #(swap-view state view))))
      [:p]]))
 
 

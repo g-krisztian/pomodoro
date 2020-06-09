@@ -38,10 +38,14 @@
          (sab/html (pui/input-length state-atom :length #())))
 
 (defcard progress-bar
-         (sab/html (pui/progress-bar state-atom)))
+         (fn [data _]
+           (sab/html (pui/progress-bar data)))
+         state-atom)
 
 (defcard choose-view
-         (sab/html (pc/choose-view state-atom)))
+         (fn [data _]
+           (sab/html (pc/choose-view data)))
+         state-atom)
 
 (defcard single-run
          (fn [data _]

@@ -63,8 +63,10 @@
                     (dropdown-item "Second" #(action/swap-unit state :sec))
                     (dropdown-item "Minute" #(action/swap-unit state :min)))]])
 
-(defn progress-bar [{length :length-in-seconds elapsed :elapsed :or {length 1}}]
-  (let [progress (* 100 (/ elapsed length))]
+(defn progress-bar [state]
+  (let [{length :length-in-seconds
+         elapsed :elapsed :or {length 1}} state
+        progress (* 100 (/ elapsed length))]
     [:div {:class "progress"}
      [:div {:class         "progress-bar"
             :role          "progressbar"

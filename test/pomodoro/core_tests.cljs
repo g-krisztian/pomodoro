@@ -1,6 +1,7 @@
 (ns pomodoro.core-tests
   (:require [cljs.test :refer-macros [deftest is run-tests testing]]
-            [pomodoro.core :as pomodoro]))
+            [pomodoro.core :as pomodoro]
+            [reagent.core :as r]))
 
 (pomodoro.cookie-storage/init :pomodoro-test)
 
@@ -15,30 +16,16 @@
                    :min        "Minute"}
                   pomodoro/dictionary))) "Dictionary")
 
+(deftest swap-view
+  (let [view "single-run"]
+    (is (= view ((pomodoro/swap-view (atom {}) view) :view)))))
 
+(deftest show-view
+  (is :div#single-run (first (pomodoro/show-view (r/atom {:view :single-run}))))
+  (is :div#planning (first (pomodoro/show-view (r/atom {:view :planning}))))
+  (is :div#history (first (pomodoro/show-view (r/atom {:view :history}))))
+  (is :div#summary (first (pomodoro/show-view (r/atom {:view :summary}))))
+  (is :div#single-run (first (pomodoro/show-view (r/atom {})))))
 
 
 (run-tests)
-
-#_(deftest
-    first-testers
-    "## This is documentation\n   It should work well"
-    (testing
-      "good stuff"
-      (is (= (+ 3 4 55555) 5) "Testing the adding")
-      (is (= (+ 1 0 0 0) 1) "This should work")
-      (is (= 1 3))
-      (is false)
-      (is (throw "heck"))
-      (is (js/asdf)))
-    "## And here is more documentation"
-    (testing
-      "bad stuff"
-      (is (= (+ 1 0 0 0) 1))
-      (is (= (+ 3 4 55555) 4))
-      (is false)
-      (testing
-        "mad stuff"
-        (is (= (+ 1 0 0 0) 1))
-        (is (= (+ 3 4 55555) 4))
-        (is false))))
