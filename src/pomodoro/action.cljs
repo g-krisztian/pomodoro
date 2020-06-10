@@ -33,7 +33,7 @@
   (let [batch (:remain-plan @state)]
     (when-not (empty? batch)
       (let [task (select-keys (first batch) [:length :task-name :unit :length-in-seconds])]
-        (swap! state merge {:remain-plan (rest batch)} task)
+        (swap! state merge {:remain-plan (vec (rest batch))} task)
         (start-button-on-click state)))))
 
 (defn start-plan [state]

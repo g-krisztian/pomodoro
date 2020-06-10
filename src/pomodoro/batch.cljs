@@ -16,9 +16,9 @@
 (defn get-task-in-milisec [task]
   (* 1000 (action/get-task-in-seconds task)))
 
-(defn run-next-item [state]
+(defn run-next-item [state now]
   (let [plan (:remain-plan @state)]
-    (action/add-to-history state (.getTime (js/Date.)))
+    (action/add-to-history state now)
     (if (empty? plan)
       (action/reset-task state)
       (action/run-plan state))))
@@ -30,7 +30,7 @@
       (ui/hideable-button-element (@state :active) "Start batch" #(action/start-plan state))
       (ui/hideable-button-element (@state :paused) "Pause timer" #(action/pause-button-on-click state))
       (ui/hideable-button-element (@state :resume) "Resume timer" #(action/pause-button-on-click state))
-      (when-not (empty? (:remain-plan @state)) (ui/hideable-button-element (@state :stop) "Run next" #(run-next-item state)))
+      (when-not (empty? (:remain-plan @state)) (ui/hideable-button-element (@state :stop) "Run next" #(run-next-item state (.getTime (js/Date.)))))
       (ui/hideable-button-element (@state :stop) "Stop batch" #(action/stop-button-on-click state))]
      [:div {:style {:margin-top "1%"}}
       (ui/progress-bar @state)]]))

@@ -18,7 +18,7 @@
 
 (deftest swap-view
   (let [view "single-run"]
-    (is (= view ((pomodoro/swap-view (atom {}) view) :view)))))
+    (is (= view ((pomodoro/swap-view (r/atom {}) view) :view)))))
 
 (deftest show-view
   (is :div#single-run (first (pomodoro/show-view (r/atom {:view :single-run}))))
