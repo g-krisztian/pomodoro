@@ -51,10 +51,11 @@
         app-state (r/atom (merge @(state 3) {:remain-plan       tasks
                                              :length-in-seconds 5
                                              :key               2
-                                             :start-time        12345}))
+                                             :start-time        12345
+                                             :now               123456}))]
 
-        now 123456]
-    (batch/run-next-item app-state now)
+
+    (batch/run-next-item app-state)
     (let [history (pomodoro.cookie-storage/get-history)
           remain-plan (:remain-plan @app-state)]
       (is (seq? history))
@@ -89,9 +90,10 @@
   (let [app-state (r/atom (merge @(state 4) {:remain-plan       []
                                              :length-in-seconds 5
                                              :key               3
-                                             :start-time        12345}))
-        now 234567]
-    (batch/run-next-item app-state now)
+                                             :start-time        12345
+                                             :now               234567}))]
+
+    (batch/run-next-item app-state)
     (let [history (pomodoro.cookie-storage/get-history)
           remain-plan (:remain-plan @app-state)]
       ;check history

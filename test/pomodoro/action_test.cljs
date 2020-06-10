@@ -135,13 +135,16 @@
          (action/reset-task (atom {:length 1 :unit :sec})))))
 
 (deftest get-real-duration
-  (is (= 200 (action/get-real-duration (r/atom {:start-time 0}) 200)))
+  (is (= 200 (action/get-real-duration (r/atom {:start-time 0
+                                                :now 200}))))
   (is (= 200 (action/get-real-duration (r/atom {:start-time  0
                                                 :paused-time 100
-                                                :paused      false}) 200)))
+                                                :paused      false
+                                                :now 200}))))
   (is (= 100 (action/get-real-duration (r/atom {:start-time  0
                                                 :paused-time 100
-                                                :paused      true}) 200))))
+                                                :paused      true
+                                                :now 200})))))
 
 (deftest add-to-history
   (pomodoro.cookie-storage/delete-history)
@@ -149,7 +152,8 @@
                                   :length-in-seconds 61
                                   :start-time        0
                                   :key               0
-                                  :duration          200}) 200)
+                                  :duration          200
+                                  :now 200}))
   (let [history (pomodoro.cookie-storage/get-history)]
     (are [k v] (= (get (first history) k) v)
                :task-name "task-name"

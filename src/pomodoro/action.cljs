@@ -51,23 +51,24 @@
                       :resume  true
                       :elapsed 0}))
 
-(defn get-real-duration [state now]
+(defn get-real-duration [state]
   (let [start (:start-time @state)
+        now (:now @state)
         real-duration (- now start)
         paused-duration (- (:paused-time @state) start)]
     (if (:paused @state false) paused-duration real-duration)))
 
-(defn add-to-history [state now]
+(defn add-to-history [state]
   (storage/set-history
            (conj (storage/get-history)
                  {:task-name (:task-name @state)
                   :length    (:length-in-seconds @state)
                   :start     (:start-time @state)
                   :key       (str "history_" (:key @state))
-                  :duration  (get-real-duration state now)})))
+                  :duration  (get-real-duration state)})))
 
 (defn stop-button-on-click [state]
-  (add-to-history state (.getTime (js/Date.)))
+  (add-to-history state)
   (reset-task state))
 
 (defn start-on-enter [event state]
