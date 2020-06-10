@@ -26,6 +26,3 @@
   (is :div#history (first (pomodoro/show-view (r/atom {:view :history}))))
   (is :div#summary (first (pomodoro/show-view (r/atom {:view :summary}))))
   (is :div#single-run (first (pomodoro/show-view (r/atom {})))))
-
-
-(run-tests)

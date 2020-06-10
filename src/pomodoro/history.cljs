@@ -1,6 +1,5 @@
 (ns pomodoro.history
-  (:require [reagent.cookies :as rc]
-            [pomodoro.ui-common :as ui]
+  (:require [pomodoro.ui-common :as ui]
             [pomodoro.time-format :as tf]
             [pomodoro.action :as action]
             [pomodoro.cookie-storage :as storage]))

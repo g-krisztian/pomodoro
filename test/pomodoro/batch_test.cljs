@@ -44,7 +44,7 @@
 (deftest get-task-in-milisec
   (is (= 61000 (batch/get-task-in-milisec task))))
 
-(deftest run-next-item-with-to-tasks
+(deftest run-next-item-with-two-tasks
   (pomodoro.cookie-storage/delete-history)
   (let [second-task (merge task {:key "plan_4"})
         tasks [task second-task]
@@ -143,5 +143,3 @@
                :key               "plan_5"}]
     (is (vector? plan))
     (is (= break (first plan)))))
-
-(run-tests)

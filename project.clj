@@ -12,9 +12,7 @@
                  [reagent "0.10.0"]
                  [reagent-utils "0.3.3"]
                  [devcards "0.2.7"]
-                 [org.clojars.frozenlock/reagent-modals "0.2.8"]
-                 [cljs-bach "0.3.0"]
-                 [com.cognitect/transit-cljs "0.8.256"]]
+                 [cljs-bach "0.3.0"]]
 
   :source-paths ["src" "test"]
   :resource-paths ["resources" "target"]

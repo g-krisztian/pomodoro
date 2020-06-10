@@ -1,6 +1,5 @@
 (ns pomodoro.core
   (:require [reagent.dom :as rd]
-            [reagent-modals.modals :as rm]
             [pomodoro.action :as action]
             [pomodoro.ui-common :as ui]
             [pomodoro.summary :as summary]
@@ -80,7 +79,6 @@
    [:p @storage/source]
    ;[:p (str (storage/get-plan))]
    (choose-view app-state)
-   (show-view app-state)
-   [rm/modal-window]])
+   (show-view app-state)])
 
 (rd/render [applet] (. js/document (getElementById "app")))

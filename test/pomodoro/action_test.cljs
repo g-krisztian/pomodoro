@@ -172,5 +172,3 @@
     (is (not (:paused @state)))
     (is (not (:resume @state)))
     (is (int? (:paused-time @state)))))
-
-(run-tests)

@@ -1,6 +1,6 @@
 # pomodoro
 
-Another pomodoro app
+Pomodoro app in clojureScript
 
 ## Overview
 
@@ -10,7 +10,18 @@ You are able to
  - run a plan
  - review the history
  - get a summary, grouped by tasks
-
+ 
+## Technologies
+|tool|goal|
+|---|---|
+| clojureScript | development     |
+| leiningen     | build           |
+| fighweel-main | live reload     |
+| reagent       | react           |
+| reagent-utils | cookie storage  |
+| devcards      | testing         |
+| cljs-bach     | make some noise |
+ 
 ## Setup
 
 To get an interactive development environment run:
