@@ -16,9 +16,11 @@
    (when (:active @state) [:div
                            (ui/control-buttons state)
                            [:p]])
-   (let [history (storage/get-history)]
+   (let [history (storage/get-history)
+         full-width ((:width @state) 0.94)
+         width (min 120 (* full-width 0.33))]
      (when (seq? history)
-       [:table {:class "table table-striped table-bordered" :id "summary"}
+       [:table {:class "table table-striped table-bordered" :id "summary" :style {:width (min 600 full-width)}}
         [:thead {:class "thead-dark"}
          [:tr
           [:th "Task name"]
@@ -29,4 +31,5 @@
                 [:tr {:key (:task-name task)}
                  [:td (:task-name task)]
                  [:td (tf/render-time (:length task))]
-                 [:td (ui/button-element (@state :active) "Restart" #(action/restart state (update-in task [:length] quot 1000)))]]))]))])
+                 [:td {:style {:width width}}
+                  (ui/button-element (@state :active) width "Restart" #(action/restart state (update-in task [:length] quot 1000)))]]))]))])

@@ -15,10 +15,13 @@
     [devcards.core :refer [defcard]]))
 
 (defonce state-atom (r/atom {:get-key           pcs/get-key
+                             :width             pc/width
                              :dictionary        pc/dictionary
                              :length            25
                              :length-in-seconds 25
                              :elapsed           10
+                             :paused            true
+                             :active            true
                              :task-name         "Default"
                              :now               (.getTime (js/Date.))
                              :start-time        (.getTime (js/Date.))
@@ -32,10 +35,14 @@
 (defonce ticker (js/setInterval #(pc/main-loop state-atom) 1000))
 
 (defcard text-input
-         (sab/html (pui/text-input state-atom :task-name #())))
+         (fn [data _]
+           (sab/html (pui/text-input data :task-name #())))
+         state-atom)
 
 (defcard number-input
-         (sab/html (pui/input-length state-atom :length #())))
+         (fn [data _]
+           (sab/html (pui/input-length data :length #())))
+         state-atom)
 
 (defcard progress-bar
          (fn [data _]

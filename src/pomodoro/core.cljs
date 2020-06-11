@@ -19,7 +19,12 @@
                  :sec        "Second"
                  :min        "Minute"})
 
+(defn width
+  ([] (width 1))
+  ([r] (* r (.-innerWidth js/window))))
+
 (defonce app-state (r/atom {:get-key   storage/get-key
+                            :width width
                             :dictionary dictionary
                             :length    25
                             :elapsed   0
@@ -40,9 +45,10 @@
     (single/single-run state)))
 
 (defn choose-view [state]
-  (let [views [:single-run :planning :history :summary]]
-    [:div
-     (into [:div {:class "btn-group"}] (for [view views] (ui/button-element (@state :active) (dictionary view) #(swap-view state view))))
+  (let [views [:single-run :planning :history :summary]
+        width (:width @state)]
+    [:div {:style {:width "10%"}}
+     (into [:div {:class "btn-group"}] (for [view views] (ui/button-element (@state :active) (min 150 (width 0.238)) (dictionary view) #(swap-view state view))))
      [:p]]))
 
 

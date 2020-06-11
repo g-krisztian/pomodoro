@@ -12,21 +12,24 @@
    (when (:active @state) [:div
                            (ui/control-buttons state)
                            [:p]])
-   (let [history (storage/get-history)]
+   (let [history (storage/get-history)
+         full-width (min 600 ((:width @state) 0.94))
+         width (* full-width 0.2)
+         str-delete (if (< 550 full-width) "Delete history" "Delete")]
      (when (seq? history)
-       [:table {:class "table table-striped table-bordered" :id "history" :style {:max-width "597px"}}
+       [:table {:class "table table-striped table-bordered" :id "history" :style {:width full-width}}
         [:thead {:class "thead-dark"}
          [:tr
           [:th "Task name"]
-          [:th "Start time"]
+          (when (< 550 full-width)[:th "Start time"])
           [:th "Planned duration"]
           [:th "Real duration"]
-          [:th (ui/button-element (@state :active) "Delete history" storage/delete-history)]]]
+          [:th (ui/button-element (@state :active) width str-delete storage/delete-history)]]]
         (into [:tbody]
               (for [task history]
                 [:tr {:key (:key task)}
                  [:td (:task-name task)]
-                 [:td (.toLocaleString (js/Date. (:start task)))]
+                 (when (< 550 full-width)[:td (.toLocaleString (js/Date. (:start task)))])
                  [:td (tf/render-time (* 1000 (:length task)))]
                  [:td (tf/render-time (:duration task))]
-                 [:td (ui/button-element (@state :active) "Restart" #(action/restart state task))]]))]))])
+                 [:td (ui/button-element (@state :active) width "Restart" #(action/restart state task))]]))]))])
