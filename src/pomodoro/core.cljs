@@ -87,7 +87,7 @@
   (let [views [:single-run :planning :history :summary]
         width (:width @state)]
     [:div {:style {:width "10%"}}
-     (into [:div {:class "btn-group"}] (for [view views] (ui/button-element (@state :active) (min 150 (width 0.238)) (action/dict app-state view) #(swap-view state view))))
+     (into [:div {:class "btn-group"}] (for [view views] (ui/button-element (@state :active) (min 150 (width 0.238)) (action/dict state view) #(swap-view state view))))
      [:p]]))
 
 
