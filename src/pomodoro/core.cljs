@@ -87,7 +87,7 @@
   (let [views [:single-run :planning :history :summary]
         width (:width @state)]
     [:div {:style {:width "10%"}}
-     (into [:div {:class "btn-group"}] (for [view views] (ui/button-element (@state :active) (min 150 (width 0.238)) (get-in @state [:dictionary view]) #(swap-view state view))))
+     (into [:div {:class "btn-group"}] (for [view views] (ui/button-element (@state :active) (min 150 (width 0.238)) (action/dict app-state view) #(swap-view state view))))
      [:p]]))
 
 
@@ -104,7 +104,7 @@
 
 (defn set-title []
   (set! js/document.title (str "Pompdoro - "
-                               ((:view @app-state) dictionary)
+                               (action/dict app-state (:view @app-state))
                                " "
                                (when
                                  (:active @app-state)
