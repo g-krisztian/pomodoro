@@ -52,7 +52,7 @@
              :style {:width        label-with
                      :paddingLeft  "0.5rem"
                      :paddingRight "0.5rem"}}
-      "Task name:"]
+      (get-in @state [:dictionary key])]
      [:input {:type             "text"
               :class            "form-control"
               :style            {:width input-with}
@@ -72,7 +72,7 @@
              :style {:width        label-with
                      :paddingLeft  "0.5rem"
                      :paddingRight "0.5rem"}}
-      "Task length:"]
+      (get-in @state [:dictionary key])]
      [:input {:type         "number"
               :class        "form-control"
               :style        {:width input-with}
@@ -84,8 +84,8 @@
       (dropdown (:active @state)
                 label-with
                 (get-in @state [:dictionary (@state :unit)])
-                (dropdown-item "Second" #(action/swap-unit state :sec))
-                (dropdown-item "Minute" #(action/swap-unit state :min)))]]))
+                (dropdown-item (get-in @state [:dictionary :sec]) #(action/swap-unit state :sec))
+                (dropdown-item (get-in @state [:dictionary :min]) #(action/swap-unit state :min)))]]))
 
 (defn progress-bar [state]
   (let [{length  :length-in-seconds
@@ -108,9 +108,9 @@
                 full-width)]
     [:div
      [:div {:class "btn-group" :style {:margin-top "1%"}}
-      (hideable-button-element (@state :active) width "Start timer" #(action/start-button-on-click state))
-      (hideable-button-element (@state :paused) width "Pause timer" #(action/pause-button-on-click state))
-      (hideable-button-element (@state :resume) width "Resume timer" #(action/pause-button-on-click state))
-      (hideable-button-element (@state :stop) width "Stop timer" #(action/stop-button-on-click state))]
+      (hideable-button-element (@state :active) width (get-in @state [:dictionary :start-timer]) #(action/start-button-on-click state))
+      (hideable-button-element (@state :paused) width (get-in @state [:dictionary :pause-timer]) #(action/pause-button-on-click state))
+      (hideable-button-element (@state :resume) width (get-in @state [:dictionary :resume-timer]) #(action/pause-button-on-click state))
+      (hideable-button-element (@state :stop) width   (get-in @state [:dictionary :stop-timer]) #(action/stop-button-on-click state))]
      [:div {:style {:margin-top "1%"}}
       (progress-bar state)]]))

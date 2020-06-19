@@ -11,10 +11,12 @@
 
 
 (defn state [key]
-  (r/atom {:task-name "task-name"
-           :length    10
-           :unit      :min
-           :get-key   #(int key)}))
+  (r/atom {:task-name  "task-name"
+           :dictionary {:long-break  "Long break"
+                        :short-break "Short break"}
+           :length     10
+           :unit       :min
+           :get-key    #(int key)}))
 
 (deftest add-to-plan
   ;GIVEN

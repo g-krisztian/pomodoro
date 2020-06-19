@@ -12,7 +12,7 @@
                                    :length    length})))))
 (defn summary [state]
   [:div#summary
-   [:h3 "Summary"]
+   [:h3 (get-in @state [:dictionary :summary])]
    (when (:active @state) [:div
                            (ui/control-buttons state)
                            [:p]])
@@ -23,8 +23,8 @@
        [:table {:class "table table-striped table-bordered" :id "summary" :style {:width (min 600 full-width)}}
         [:thead {:class "thead-dark"}
          [:tr
-          [:th "Task name"]
-          [:th "Spent time"]
+          [:th (get-in @state [:dictionary :task-name])]
+          [:th (get-in @state [:dictionary :spent-time])]
           [:th ""]]]
         (into [:tbody]
               (for [task (sum-usage history)]
@@ -32,4 +32,4 @@
                  [:td (:task-name task)]
                  [:td (tf/render-time (:length task))]
                  [:td {:style {:width width}}
-                  (ui/button-element (@state :active) width "Restart" #(action/restart state (update-in task [:length] quot 1000)))]]))]))])
+                  (ui/button-element (@state :active) width (get-in @state [:dictionary :restart]) #(action/restart state (update-in task [:length] quot 1000)))]]))]))])
