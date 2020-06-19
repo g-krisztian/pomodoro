@@ -9,7 +9,7 @@
 
 (defn new-plan [state]
   (let [task (select-keys @state [:task-name :length :unit])]
-    (merge task {:key (str "plan_" ((@state :get-key)))
+    (merge task {:key               (str "plan_" ((@state :get-key)))
                  :length-in-seconds (get-task-in-seconds task)})))
 
 (defn swap-value [state key e]
@@ -24,10 +24,11 @@
          {:start-time        (.getTime (js/Date.))
           :elapsed           0
           :paused            false
+          :resume            true
           :active            true
           :stop              false
           :length-in-seconds (get-task-in-seconds @state)
-          :key ((@state :get-key))}))
+          :key               ((@state :get-key))}))
 
 (defn run-plan [state]
   (let [batch (:remain-plan @state)]
@@ -60,12 +61,12 @@
 
 (defn add-to-history [state]
   (storage/set-history
-           (conj (storage/get-history)
-                 {:task-name (:task-name @state)
-                  :length    (:length-in-seconds @state)
-                  :start     (:start-time @state)
-                  :key       (str "history_" (:key @state))
-                  :duration  (get-real-duration state)})))
+    (conj (storage/get-history)
+          {:task-name (:task-name @state)
+           :length    (:length-in-seconds @state)
+           :start     (:start-time @state)
+           :key       (str "history_" (:key @state))
+           :duration  (get-real-duration state)})))
 
 (defn stop-button-on-click [state]
   (add-to-history state)
