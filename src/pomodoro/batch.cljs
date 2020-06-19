@@ -23,7 +23,7 @@
       (action/reset-task state)
       (action/run-plan state))))
 
-(defn plan-runner [state]
+(defn plan-runner [state] ;TODO skipping to next task while paused, doesn't hide resume button
   (when (storage/contains-plan?)
     (let [full-width (min 600 ((:width @state) 0.94))
           skip-visible (not-empty (:remain-plan @state))
