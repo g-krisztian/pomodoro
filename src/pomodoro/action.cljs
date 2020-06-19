@@ -83,3 +83,6 @@
   (stop-button-on-click state)
   (audio/playback-mp3)
   (when-not (empty? (:remain-plan @state)) (run-plan state)))
+
+(defn dict [state k]
+  (get-in @state [:dictionary k]))

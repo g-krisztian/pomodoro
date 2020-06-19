@@ -5,7 +5,6 @@
 (defn common-button-style [width value callback]
   {:type     :button
    :class    "btn btn-secondary"
-
    :value    value
    :style    {:width        width
               :text-align   "center"
