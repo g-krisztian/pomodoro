@@ -118,11 +118,8 @@
   [:div#app {:style {:margin "auto"
                      :width  "max-content"}}
    [:h1 "Pomodoro app"]
-   ;   [button-element :modal "modal" #(rm/modal! [:p "semmi"])]
    [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @app-state))))]
-   ;[:p (str @app-state)]
    [:p @storage/source]
-   ;[:p (str (storage/get-plan))]
    (choose-view app-state)
    (show-view app-state)])
 
