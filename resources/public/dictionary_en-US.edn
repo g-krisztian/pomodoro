@@ -9,7 +9,7 @@
  :planed-duration   "Planed duration"
  :planed-time       "Planed time: "
  :planning          "Batch run"
- :real-duration     "Real duartion"
+ :real-duration     "Real duration"
  :remove            "Remove"
  :restart           "Restart"
  :resume-timer      "Resume"
