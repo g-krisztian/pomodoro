@@ -43,7 +43,7 @@
     items]])
 
 (defn text-input [state key action]
-  (let [full-with (min 600 ((:width @state) 0.94))
+  (let [full-with (min 600 (* (:width @state) 0.94))
         label-with (* 0.3 full-with)
         input-with (- full-with label-with)]
     [:div {:class "input-group-prepend" :style {:width full-with}}
@@ -63,7 +63,7 @@
               :aria-describedby "addon-wrapping"}]]))
 
 (defn input-length [state key action]
-  (let [full-with (min 600 ((:width @state) 0.94))
+  (let [full-with (min 600 (* (:width @state) 0.94))
         label-with (* 0.3 full-with)
         input-with (* 0.4 full-with)]
     [:div {:class "input-group-prepend" :style {:width full-with}}
@@ -101,7 +101,7 @@
       (tf/render-time (* 1000 elapsed))]]))
 
 (defn control-buttons [state]
-  (let [full-width (min 600 ((:width @state) 0.94))
+  (let [full-width (min 600 (* (:width @state) 0.94))
         width (if (:active @state)
                 (* full-width 0.5)
                 full-width)]

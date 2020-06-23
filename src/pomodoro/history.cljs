@@ -7,17 +7,19 @@
 
 
 (defn history-table [state]
-  [:div#history
+  [:div#:history
    [:h3 (action/dict state :history)]
    (when (:active @state) [:div
                            (ui/control-buttons state)
                            [:p]])
    (let [history (storage/get-history)
-         full-width (min 600 ((:width @state) 0.94))
+         full-width (min 600 (* (:width @state) 0.94))
          width (* full-width 0.2)
          str-delete (if (< 550 full-width) (action/dict state :remove) "Delete")]
      (when (seq? history)
-       [:table {:class "table table-striped table-bordered" :id "history" :style {:width full-width}}
+       [:table {:class "table table-striped table-bordered"
+                :id "history"
+                :style {:width full-width}}
         [:thead {:class "thead-dark"}
          [:tr
           [:th (action/dict state :task-name)]
@@ -32,4 +34,8 @@
                  (when (< 550 full-width)[:td (.toLocaleString (js/Date. (:start task)))])
                  [:td (tf/render-time (* 1000 (:length task)))]
                  [:td (tf/render-time (:duration task))]
-                 [:td (ui/button-element (@state :active) width (action/dict state :restart) #(action/restart state task))]]))]))])
+                 [:td (ui/button-element
+                        (@state :active)
+                        width
+                        (action/dict state :restart)
+                        #(action/restart state task))]]))]))])

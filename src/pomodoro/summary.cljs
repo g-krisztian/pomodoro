@@ -17,7 +17,7 @@
                            (ui/control-buttons state)
                            [:p]])
    (let [history (storage/get-history)
-         full-width ((:width @state) 0.94)
+         full-width (* (:width @state) 0.94)
          width (min 120 (* full-width 0.33))]
      (when (seq? history)
        [:table {:class "table table-striped table-bordered" :id "summary" :style {:width (min 600 full-width)}}

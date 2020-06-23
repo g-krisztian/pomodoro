@@ -25,7 +25,7 @@
 
 (defn plan-runner [state]
   (when (storage/contains-plan?)
-    (let [full-width (min 600 ((:width @state) 0.94))
+    (let [full-width (min 600 (* (:width @state) 0.94))
           skip-visible (not-empty (:remain-plan @state))
           width (cond
                   (and (:active @state) skip-visible) (* full-width 0.33)
@@ -43,7 +43,7 @@
 
 (defn plan-table [state]
   (when-let [plan (storage/get-plan)]
-    (let [full-width ((:width @state) 0.94)
+    (let [full-width (* (:width @state) 0.94)
           width (min 120 (* full-width 0.33))]
       [:div#plan
        [:table {
@@ -76,7 +76,7 @@
                 :key               (str "plan_" ((@state :get-key)))}))
 
 (defn planning [state]
-  (let [width (min 200 ((:width @state) 0.315))]
+  (let [width (min 200 (* (:width @state) 0.315))]
     [:div#planning
      [:h3 (action/dict state :planning)]
      (ui/text-input state :task-name #(add-to-plan-on-enter % state))

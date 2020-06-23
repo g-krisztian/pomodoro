@@ -9,15 +9,17 @@
     [pomodoro.summary :as ps]
     [pomodoro.ui-common :as pui]
     [pomodoro.cookie-storage :as pcs]
+    [pomodoro.init :as init]
     [reagent.core :as r]
     [ajax.core :refer [GET]])
+
   (:require-macros
     [devcards.core :refer [defcard]]))
 
 
 (defonce state-atom (r/atom {:get-key           pcs/get-key
-                             :width             pc/width
-                             :dictionary        pc/dictionary
+                             :dictionary        pc/dictionary-en_US
+                             :width             (.-innerWidth js/window)
                              :length            25
                              :length-in-seconds 25
                              :elapsed           10
@@ -29,13 +31,11 @@
                              :view              :history
                              :unit              :sec}))
 
-(pcs/init :pomodoro-cards)
-
-(def width (pc/width))
+(init/init state-atom :pomodoro-cards "hu-HU")
 
 (defn svg [x]
   [:svg {:xmlns       "http://www.w3.org/2000/svg"
-         :xmlnsXlink "http://www.w3.org/1999/xlink"
+         :xmlnsXlink  "http://www.w3.org/1999/xlink"
          :aria-hidden "true"
          :focusable   "false"
          :width       x
@@ -49,7 +49,7 @@
 
 (defn svg2 [x]
   [:svg {:xmlns               "http://www.w3.org/2000/svg"
-         :xmlnsXlink         "http://www.w3.org/1999/xlink"
+         :xmlnsXlink          "http://www.w3.org/1999/xlink"
          :aria-hidden         "true"
          :focusable           "false"
          :width               (str x "px")
@@ -68,21 +68,6 @@
                     :paddingRight "0.5rem"}}
      (svg2 x)
      "Task name:"])
-
-(defn handler [response]
-  (.log js/console (str response))
-  (let [dict (cljs.reader/read-string response)]
-    (swap! state-atom merge {:dictionary dict :task-name (:default-task-name dict)})))
-
-(defn error-handler [{:keys [status status-text]}]
-  (.log js/console (str "something bad happened: " status " " status-text)))
-
-(defn ajax [l]
-         (GET (str "/dictionary_" l ".edn")
-              {:handler handler
-               :error-handler error-handler}))
-
-(ajax "hu-HU")
 
 (defcard app-state state-atom)
 
