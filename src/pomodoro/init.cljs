@@ -10,7 +10,7 @@
 
 (defn load-dictionary [state response]
   (let [dict (cljs.reader/read-string response)]
-    (swap! state merge {:dictionary dict :task-name (:default-task-name dict)})))
+    (swap! state merge {:dictionary dict :task-name (get-in dict [:long :default-task-name])})))
 
 (defn get-dictionary [state language]
   (GET (str "/dictionary_" language ".edn")

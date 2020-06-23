@@ -86,8 +86,13 @@
   (audio/playback-mp3)
   (when-not (empty? (:remain-plan @state)) (run-plan state)))
 
-(defn dict [state k]
-  (get-in @state [:dictionary k]))
+(defn dict
+  ([state key]
+   (get-in @state [:dictionary :long key]))
+  ([state key width]
+   (let [short-value (get-in @state [:dictionary :short key])
+         long-value (get-in @state [:dictionary :long key])]
+     (or short-value long-value))))
 
 (defn set-title [state]
   (set! js/document.title (str "Pompdoro - "
