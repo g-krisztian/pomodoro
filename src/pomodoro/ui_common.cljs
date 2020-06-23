@@ -1,6 +1,7 @@
 (ns pomodoro.ui-common
   (:require [pomodoro.time-format :as tf]
-            [pomodoro.action :as action]))
+            [pomodoro.action :as action]
+            [pomodoro.dictionary :as dict]))
 
 (defn common-button-style [width value callback]
   {:type     :button
@@ -51,7 +52,7 @@
              :style {:width        label-with
                      :paddingLeft  "0.5rem"
                      :paddingRight "0.5rem"}}
-      (action/dict state key)]
+      (dict/get state key)]
      [:input {:type             "text"
               :class            "form-control"
               :style            {:width input-with}
@@ -71,7 +72,7 @@
              :style {:width        label-with
                      :paddingLeft  "0.5rem"
                      :paddingRight "0.5rem"}}
-      (action/dict state key)]
+      (dict/get state key)]
      [:input {:type         "number"
               :class        "form-control"
               :style        {:width input-with}
@@ -82,9 +83,9 @@
      [:span {:style {:width label-with}}
       (dropdown (:active @state)
                 label-with
-                (action/dict state (@state :unit))
-                (dropdown-item (action/dict state :sec) #(action/swap-unit state :sec))
-                (dropdown-item (action/dict state :min) #(action/swap-unit state :min)))]]))
+                (dict/get state (@state :unit))
+                (dropdown-item (dict/get state :sec) #(action/swap-unit state :sec))
+                (dropdown-item (dict/get state :min) #(action/swap-unit state :min)))]]))
 
 (defn progress-bar [state]
   (let [{length  :length-in-seconds
@@ -107,9 +108,9 @@
                 full-width)]
     [:div
      [:div {:class "btn-group" :style {:margin-top "1%"}}
-      (hideable-button-element (@state :active) width (action/dict state :start-timer) #(action/start-button-on-click state))
-      (hideable-button-element (@state :paused) width (action/dict state :pause-timer) #(action/pause-button-on-click state))
-      (hideable-button-element (@state :resume) width (action/dict state :resume-timer) #(action/pause-button-on-click state))
-      (hideable-button-element (@state :stop) width   (action/dict state :stop-timer) #(action/stop-button-on-click state))]
+      (hideable-button-element (@state :active) width (dict/get state :start-timer) #(action/start-button-on-click state))
+      (hideable-button-element (@state :paused) width (dict/get state :pause-timer) #(action/pause-button-on-click state))
+      (hideable-button-element (@state :resume) width (dict/get state :resume-timer) #(action/pause-button-on-click state))
+      (hideable-button-element (@state :stop) width (dict/get state :stop-timer) #(action/stop-button-on-click state))]
      [:div {:style {:margin-top "1%"}}
       (progress-bar state)]]))

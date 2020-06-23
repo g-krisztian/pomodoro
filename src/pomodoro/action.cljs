@@ -1,7 +1,8 @@
 (ns pomodoro.action
   (:require [pomodoro.audio :as audio]
             [pomodoro.cookie-storage :as storage]
-            [pomodoro.time-format :as tf]))
+            [pomodoro.time-format :as tf]
+            [pomodoro.dictionary :as dict]))
 
 (defn get-task-in-seconds [task]
   (if (= (:unit task) :min)
@@ -86,17 +87,9 @@
   (audio/playback-mp3)
   (when-not (empty? (:remain-plan @state)) (run-plan state)))
 
-(defn dict
-  ([state key]
-   (get-in @state [:dictionary :long key]))
-  ([state key width]
-   (let [short-value (get-in @state [:dictionary :short key])
-         long-value (get-in @state [:dictionary :long key])]
-     (or short-value long-value))))
-
 (defn set-title [state]
   (set! js/document.title (str "Pompdoro - "
-                               (dict state (:view @state))
+                               (dict/get state (:view @state))
                                " "
                                (when
                                  (:active @state)

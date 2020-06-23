@@ -2,7 +2,8 @@
   (:require [pomodoro.time-format :as tf]
             [pomodoro.ui-common :as ui]
             [pomodoro.action :as action]
-            [pomodoro.cookie-storage :as storage]))
+            [pomodoro.cookie-storage :as storage]
+            [pomodoro.dictionary :as dict]))
 
 (defn sum-usage [history]
   (->> history
@@ -12,7 +13,7 @@
                                    :length    length})))))
 (defn summary [state]
   [:div#summary
-   [:h3 (action/dict state :summary)]
+   [:h3 (dict/get state :summary)]
    (when (:active @state) [:div
                            (ui/control-buttons state)
                            [:p]])
@@ -23,8 +24,8 @@
        [:table {:class "table table-striped table-bordered" :id "summary" :style {:width (min 600 full-width)}}
         [:thead {:class "thead-dark"}
          [:tr
-          [:th (action/dict state :task-name)]
-          [:th (action/dict state :spent-time)]
+          [:th (dict/get state :task-name)]
+          [:th (dict/get state :spent-time)]
           [:th ""]]]
         (into [:tbody]
               (for [task (sum-usage history)]
@@ -32,4 +33,4 @@
                  [:td (:task-name task)]
                  [:td (tf/render-time (:length task))]
                  [:td {:style {:width width}}
-                  (ui/button-element (@state :active) width (action/dict state :restart) #(action/restart state (update-in task [:length] quot 1000)))]]))]))])
+                  (ui/button-element (@state :active) width (dict/get state :restart) #(action/restart state (update-in task [:length] quot 1000)))]]))]))])

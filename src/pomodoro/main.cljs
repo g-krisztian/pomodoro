@@ -5,7 +5,8 @@
             [pomodoro.batch :as batch]
             [pomodoro.history :as history]
             [pomodoro.summary :as summary]
-            [pomodoro.time-format :as tf]))
+            [pomodoro.time-format :as tf]
+            [pomodoro.dictionary :as dict]))
 
 (defn show-view [state]
   (condp = (:view @state)
@@ -26,7 +27,7 @@
              (ui/button-element
                (@state :active)
                (min 150 (* width 0.238))
-               (action/dict state view)
+               (dict/get state view)
                #(swap-view state view))))
      [:p]]))
 

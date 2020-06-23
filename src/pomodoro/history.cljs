@@ -2,30 +2,31 @@
   (:require [pomodoro.ui-common :as ui]
             [pomodoro.time-format :as tf]
             [pomodoro.action :as action]
-            [pomodoro.cookie-storage :as storage]))
+            [pomodoro.cookie-storage :as storage]
+            [pomodoro.dictionary :as dict]))
 
 
 
 (defn history-table [state]
   [:div#:history
-   [:h3 (action/dict state :history)]
+   [:h3 (dict/get state :history)]
    (when (:active @state) [:div
                            (ui/control-buttons state)
                            [:p]])
    (let [history (storage/get-history)
          full-width (min 600 (* (:width @state) 0.94))
          width (* full-width 0.2)
-         str-delete (if (< 550 full-width) (action/dict state :remove) "Delete")]
+         str-delete (if (< 550 full-width) (dict/get state :remove) "Delete")]
      (when (seq? history)
        [:table {:class "table table-striped table-bordered"
                 :id "history"
                 :style {:width full-width}}
         [:thead {:class "thead-dark"}
          [:tr
-          [:th (action/dict state :task-name)]
-          (when (< 550 full-width)[:th (action/dict state :start-time)])
-          [:th (action/dict state :planed-duration)]
-          [:th (action/dict state :real-duration)]
+          [:th (dict/get state :task-name)]
+          (when (< 550 full-width) [:th (dict/get state :start-time)])
+          [:th (dict/get state :planed-duration)]
+          [:th (dict/get state :real-duration)]
           [:th (ui/button-element (@state :active) width str-delete storage/delete-history)]]]
         (into [:tbody]
               (for [task history]
@@ -37,5 +38,5 @@
                  [:td (ui/button-element
                         (@state :active)
                         width
-                        (action/dict state :restart)
+                        (dict/get state :restart)
                         #(action/restart state task))]]))]))])
