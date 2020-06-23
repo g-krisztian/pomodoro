@@ -4,7 +4,9 @@
             [pomodoro.cookie-storage :as storage]))
 
 (defn browser-language []
-  (or (.-language js/navigator) (.-userLanguage js/navigator)))
+  (->> (or (.-language js/navigator) (.-userLanguage js/navigator))
+       (re-matches #"([a-z]{2}).*")
+       second))
 
 (defn load-dictionary [state response]
   (let [dict (cljs.reader/read-string response)]
@@ -13,7 +15,7 @@
 (defn get-dictionary [state language]
   (GET (str "/dictionary_" language ".edn")
        {:handler       #(load-dictionary state %1)
-        :error-handler #(get-dictionary state "en-US")}))
+        :error-handler #(get-dictionary state "en")}))
 
 (defn change-width [state]
   (swap! state assoc :width (.-innerWidth js/window)))

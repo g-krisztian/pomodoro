@@ -2,7 +2,6 @@
   (:require [reagent.dom :as rd]
             [pomodoro.action :as action]
             [pomodoro.init :as init]
-            [pomodoro.time-format :as tf]
             [pomodoro.cookie-storage :as storage]
             [pomodoro.main :as main]
             [reagent.core :as r]))

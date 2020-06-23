@@ -30,9 +30,10 @@
                #(swap-view state view))))
      [:p]]))
 
-(defn main [state & context] [:div#:app {:style {:margin "auto"
-                                                 :width  "max-content"}}
-                              [:h1 "Pomodoro app"]
-                              [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @state))))]
-                              ;   [:p (:width @app-state)]
-                              context])
+(defn main [state & context]
+  (into [:div#:app {:style {:margin "auto"
+                            :width  "max-content"}}
+         [:h1 "Pomodoro app"]
+         [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @state))))]]
+        context))
+

@@ -31,7 +31,7 @@
                              :view              :history
                              :unit              :sec}))
 
-(init/init state-atom :pomodoro-cards "hu-HU")
+(init/init state-atom :pomodoro-cards "hu")
 
 (defn svg [x]
   [:svg {:xmlns       "http://www.w3.org/2000/svg"
