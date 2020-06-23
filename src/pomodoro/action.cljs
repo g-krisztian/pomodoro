@@ -1,6 +1,7 @@
 (ns pomodoro.action
   (:require [pomodoro.audio :as audio]
-            [pomodoro.cookie-storage :as storage]))
+            [pomodoro.cookie-storage :as storage]
+            [pomodoro.time-format :as tf]))
 
 (defn get-task-in-seconds [task]
   (if (= (:unit task) :min)
@@ -87,3 +88,14 @@
 
 (defn dict [state k]
   (get-in @state [:dictionary k]))
+
+(defn set-title [state]
+  (set! js/document.title (str "Pompdoro - "
+                               (dict state (:view @state))
+                               " "
+                               (when
+                                 (:active @state)
+                                 (str "| "
+                                      (:task-name @state)
+                                      ": "
+                                      (tf/render-time (* 1000 (:elapsed @state))))))))

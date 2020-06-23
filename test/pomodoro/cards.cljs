@@ -11,14 +11,14 @@
     [pomodoro.cookie-storage :as pcs]
     [pomodoro.init :as init]
     [reagent.core :as r]
-    [ajax.core :refer [GET]])
+    [ajax.core :refer [GET]]
+    [pomodoro.main :as main])
 
   (:require-macros
     [devcards.core :refer [defcard]]))
 
 
 (defonce state-atom (r/atom {:get-key           pcs/get-key
-                             :dictionary        pc/dictionary-en_US
                              :width             (.-innerWidth js/window)
                              :length            25
                              :length-in-seconds 25
@@ -90,7 +90,7 @@
 
 (defcard choose-view
          (fn [data _]
-           (sab/html (pc/choose-view data)))
+           (sab/html (main/choose-view data)))
          state-atom)
 
 (defcard single-run
