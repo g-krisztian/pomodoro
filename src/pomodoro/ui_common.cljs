@@ -91,7 +91,7 @@
   (let [{length  :length-in-seconds
          elapsed :elapsed :or {length 1}} @state
         progress (* 100 (/ elapsed length))]
-    [:div {:class "progress" :style {:width     (:width @state)
+    [:div {:class "progress" :style {:width     (* (:width @state) 0.94)
                                      :max-width 600}}
      [:div {:class         "progress-bar"
             :role          "progressbar"
