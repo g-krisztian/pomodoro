@@ -5,7 +5,6 @@
   ([state visibility]
    [:span {:class "input-group-text"
            :id    "text-meter"
-           ;:on-connect #(js/alert "loaded")
            :ref   #(when-not (:ready @state) (action/set-ready state true))
            :style {
                    :visibility   visibility
@@ -16,14 +15,14 @@
   ([state visibility t]
    (into (span state visibility) t)))
 
-(defn set-text-meter [text]
+(defn set-text [text]
   (set! (.. js/document (getElementById "text-meter") -textContent) text))
 
 (defn get-text-in-pixels []
   (.. js/document (getElementById "text-meter") -offsetWidth))
 
 (def measure-text (memoize (fn [text]
-                             (set-text-meter text)
+                             (set-text text)
                              (get-text-in-pixels))))
 
 (defn get-text
@@ -32,6 +31,9 @@
   ([state key width]
    (let [short-value (get-in @state [:dictionary :short key])
          long-value (get-in @state [:dictionary :long key])]
-     (if (<= (measure-text long-value) width)
-       long-value
-       (or short-value long-value)))))
+     (try
+       (if (<= (measure-text long-value) width)
+         long-value
+         (or short-value long-value))
+       (catch js/Object e long-value)))))
+
