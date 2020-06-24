@@ -1,8 +1,7 @@
 (ns pomodoro.action
   (:require [pomodoro.audio :as audio]
             [pomodoro.cookie-storage :as storage]
-            [pomodoro.time-format :as tf]
-            [pomodoro.dictionary :as dict]))
+            [pomodoro.time-format :as tf]))
 
 (defn get-task-in-seconds [task]
   (if (= (:unit task) :min)
@@ -20,6 +19,9 @@
 (defn swap-unit [state m]
   (storage/set-unit m)
   (swap! state merge {:unit m}))
+
+(defn set-ready [state ready]
+  (swap! state assoc :ready ready))
 
 (defn start-button-on-click [state]
   (swap! state merge
@@ -87,13 +89,3 @@
   (audio/playback-mp3)
   (when-not (empty? (:remain-plan @state)) (run-plan state)))
 
-(defn set-title [state]
-  (set! js/document.title (str "Pompdoro - "
-                               (dict/get state (:view @state))
-                               " "
-                               (when
-                                 (:active @state)
-                                 (str "| "
-                                      (:task-name @state)
-                                      ": "
-                                      (tf/render-time (* 1000 (:elapsed @state))))))))

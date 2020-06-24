@@ -1,7 +1,9 @@
 (ns pomodoro.init
   (:require [pomodoro.action :as action]
             [ajax.core :refer [GET]]
-            [pomodoro.cookie-storage :as storage]))
+            [pomodoro.cookie-storage :as storage]
+            [pomodoro.dictionary :as dict]
+            [pomodoro.time-format :as tf]))
 
 (defn browser-language []
   (->> (or (.-language js/navigator) (.-userLanguage js/navigator))
@@ -20,10 +22,21 @@
 (defn change-width [state]
   (swap! state assoc :width (.-innerWidth js/window)))
 
+(defn set-title [state]
+  (set! js/document.title (str "Pompdoro - "
+                               (dict/get-text state (:view @state))
+                               " "
+                               (when
+                                 (:active @state)
+                                 (str "| "
+                                      (:task-name @state)
+                                      ": "
+                                      (tf/render-time (* 1000 (:elapsed @state))))))))
 (defn init
   ([state storage]
    (init state storage (browser-language)))
   ([state storage language]
+   (set-title state)
    (.addEventListener js/window "resize" #(change-width state))
    (change-width state)
    (get-dictionary state language)

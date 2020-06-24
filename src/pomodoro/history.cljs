@@ -9,25 +9,24 @@
 
 (defn history-table [state]
   [:div#:history
-   [:h3 (dict/get state :history)]
+   [:h3 (dict/get-text state :history)]
    (when (:active @state) [:div
                            (ui/control-buttons state)
                            [:p]])
    (let [history (storage/get-history)
          full-width (min 600 (* (:width @state) 0.94))
-         width (* full-width 0.2)
-         str-delete (if (< 550 full-width) (dict/get state :remove) "Delete")]
+         width (* full-width 0.2)]
      (when (seq? history)
        [:table {:class "table table-striped table-bordered"
                 :id "history"
                 :style {:width full-width}}
         [:thead {:class "thead-dark"}
          [:tr
-          [:th (dict/get state :task-name)]
-          (when (< 550 full-width) [:th (dict/get state :start-time)])
-          [:th (dict/get state :planed-duration)]
-          [:th (dict/get state :real-duration)]
-          [:th (ui/button-element (@state :active) width str-delete storage/delete-history)]]]
+          [:th (dict/get-text state :task-name width)]
+          (when (< 550 full-width) [:th (dict/get-text state :start-time width)])
+          [:th (dict/get-text state :planed-duration width)]
+          [:th (dict/get-text state :real-duration width)]
+          [:th (ui/button-element (@state :active) width (dict/get-text state :remove width) storage/delete-history)]]]
         (into [:tbody]
               (for [task history]
                 [:tr {:key (:key task)}
@@ -38,5 +37,5 @@
                  [:td (ui/button-element
                         (@state :active)
                         width
-                        (dict/get state :restart)
+                        (dict/get-text state :restart width)
                         #(action/restart state task))]]))]))])

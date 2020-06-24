@@ -34,11 +34,11 @@
                   :else full-width)]
       [:div
        [:div {:class "btn-group" :style {:margin-top "1%"}}
-        (ui/hideable-button-element (@state :active) width (dict/get state :start-batch) #(action/start-plan state))
-        (ui/hideable-button-element (@state :paused) width (dict/get state :pause-timer) #(action/pause-button-on-click state))
-        (ui/hideable-button-element (@state :resume) width (dict/get state :resume-timer) #(action/pause-button-on-click state))
-        (when skip-visible (ui/hideable-button-element (@state :stop) width (dict/get state :run-next) #(run-next-item state)))
-        (ui/hideable-button-element (@state :stop) width (dict/get state :stop-batch) #(action/stop-button-on-click state))]
+        (ui/hideable-button-element (@state :active) width (dict/get-text state :start-batch width) #(action/start-plan state))
+        (ui/hideable-button-element (@state :paused) width (dict/get-text state :pause-timer width) #(action/pause-button-on-click state))
+        (ui/hideable-button-element (@state :resume) width (dict/get-text state :resume-timer width) #(action/pause-button-on-click state))
+        (when skip-visible (ui/hideable-button-element (@state :stop) width (dict/get-text state :run-next width) #(run-next-item state)))
+        (ui/hideable-button-element (@state :stop) width (dict/get-text state :stop-batch width) #(action/stop-button-on-click state))]
        [:div {:style {:margin-top "1%"}}
         (ui/progress-bar state)]])))
 
@@ -52,25 +52,25 @@
                 :style {:width (min 600 full-width)}}
         [:thead {:class "thead-dark"}
          [:tr
-          [:th (dict/get state :task-name)]
-          [:th (str (dict/get state :planed-time) (tf/render-time (* 1000 (reduce + (map long (map :length-in-seconds plan))))))]
-          [:th (ui/button-element (@state :active) width (dict/get state :clear-plan) #(storage/delete-plan))]]]
+          [:th (dict/get-text state :task-name width)]
+          [:th (str (dict/get-text state :planed-time width) (tf/render-time (* 1000 (reduce + (map long (map :length-in-seconds plan))))))]
+          [:th (ui/button-element (@state :active) width (dict/get-text state :clear-plan width) #(storage/delete-plan))]]]
         (into [:tbody]
               (for [task plan]
                 [:tr {:key (:key task)}
                  [:td (:task-name task)]
                  [:td (tf/render-time (get-task-in-milisec task))]
-                 [:td (ui/button-element (@state :active) width (dict/get state :remove) #(storage/set-plan (remove (fn [t] (= t task)) plan)))]]))]])))
+                 [:td (ui/button-element (@state :active) width (dict/get-text state :remove width) #(storage/set-plan (remove (fn [t] (= t task)) plan)))]]))]])))
 
 (defn short-break [state]
-  (add-to-plan {:task-name         (dict/get state :short-break)
+  (add-to-plan {:task-name         (dict/get-text state :short-break)
                 :length-in-seconds 300
                 :length            5
                 :unit              :min
                 :key               (str "plan_" ((@state :get-key)))}))
 
 (defn long-break [state]
-  (add-to-plan {:task-name         (dict/get state :long-break)
+  (add-to-plan {:task-name         (dict/get-text state :long-break)
                 :length-in-seconds 900
                 :length            15
                 :unit              :min
@@ -79,13 +79,13 @@
 (defn planning [state]
   (let [width (min 200 (* (:width @state) 0.315))]
     [:div#planning
-     [:h3 (dict/get state :planning)]
+     [:h3 (dict/get-text state :planning)]
      (ui/text-input state :task-name #(add-to-plan-on-enter % state))
      (ui/input-length state :length #(add-to-plan-on-enter % state))
      [:div {:class "btn-group" :style {:margin-top "1%"}}
-      (ui/button-element (@state :active) width (dict/get state :add-task) #(add-new-task-to-plan state))
-      (ui/button-element (@state :active) width (dict/get state :short-break) #(short-break state))
-      (ui/button-element (@state :active) width (dict/get state :long-break) #(long-break state))]
+      (ui/button-element (@state :active) width (dict/get-text state :add-task width) #(add-new-task-to-plan state))
+      (ui/button-element (@state :active) width (dict/get-text state :short-break width) #(short-break state))
+      (ui/button-element (@state :active) width (dict/get-text state :long-break width) #(long-break state))]
      [:p]
      (plan-table state)
      (plan-runner state)]))

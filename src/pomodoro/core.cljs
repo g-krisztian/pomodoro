@@ -4,15 +4,17 @@
             [pomodoro.init :as init]
             [pomodoro.cookie-storage :as storage]
             [pomodoro.main :as main]
-            [reagent.core :as r]))
+            [reagent.core :as r]
+            [pomodoro.dictionary :as dict]))
 
-(defonce app-state (r/atom {:get-key                 storage/get-key
-                            :length                  25
-                            :elapsed                 0
-                            :task-name               "Default"
-                            :now                     (.getTime (js/Date.))
-                            :view                    :single-run
-                            :unit                    (or (storage/get-unit) :min)}))
+(defonce app-state (r/atom {:get-key   storage/get-key
+                            :length    25
+                            :ready     false
+                            :elapsed   0
+                            :task-name "Default"
+                            :now       (.getTime (js/Date.))
+                            :view      :single-run
+                            :unit      (or (storage/get-unit) :min)}))
 
 (init/init app-state :pomodoro)
 
@@ -26,10 +28,10 @@
          (js/setInterval #(main-loop app-state) 1000))
 
 (defn applet []
-  (action/set-title app-state)
   (when (:dictionary @app-state)
     (main/main app-state
-               (main/choose-view app-state)
-               (main/show-view app-state))))
+               (dict/span app-state :hidden)
+               (when (:ready @app-state) (main/choose-view app-state))
+               (when (:ready @app-state) (main/show-view app-state)))))
 
 (rd/render [applet] (. js/document (getElementById "app")))

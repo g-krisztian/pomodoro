@@ -2,7 +2,7 @@
          :min             "Мин"
          :planning        "Пакетный"
          :real-duration   "Реальная"
-         :planed-duration "Продолжительность"
+         :planed-duration "Длина"
          :planed-time     "Время:"
          :sec             "Сек"
          :single-run      "Одиночный"

@@ -20,14 +20,15 @@
 
 (defn choose-view [state]
   (let [views [:single-run :planning :history :summary]
-        width (:width @state)]
+        width (:width @state)
+        button-width (min 150 (* width 0.238))]
     [:div {:style {:width "10%"}}
      (into [:div {:class "btn-group"}]
            (for [view views]
              (ui/button-element
                (@state :active)
-               (min 150 (* width 0.238))
-               (dict/get state view)
+               button-width
+               (dict/get-text state view button-width)
                #(swap-view state view))))
      [:p]]))
 
