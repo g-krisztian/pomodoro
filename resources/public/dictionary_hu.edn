@@ -19,6 +19,7 @@
          :clear-plan        "Köteg törlése"
          :default-task-name "Feladat"
          :history           "Előzmény"
+         :language          "Nyelv"
          :length            "Feladat hossza"
          :long-break        "Hosszú szünet"
          :min               "Perc"

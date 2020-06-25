@@ -31,8 +31,12 @@
   (when (:dictionary @app-state)
     (main/set-title app-state)
     (main/main app-state
-               (dict/span app-state :hidden)
-               (when (:ready @app-state) (main/choose-view app-state))
-               (when (:ready @app-state) (main/show-view app-state)))))
+               (when (:ready @app-state)
+                 [:div
+                  (main/lang-switcher app-state)
+                  (main/choose-view app-state)
+                  (main/show-view app-state)])
+      (dict/span app-state :hidden))))
+
 
 (rd/render [applet] (. js/document (getElementById "app")))

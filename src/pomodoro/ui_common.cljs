@@ -37,7 +37,7 @@
             :aria-expanded false
             :disabled      disable
             :value         value}]
-   [:div {:class           "dropdown-menu"
+   [:div {:class           "dropdown-menu dropdown-menu-right"
           :aria-labelledby "dropdownMenuButton"}
     items]])
 

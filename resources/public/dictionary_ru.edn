@@ -16,6 +16,7 @@
          :clear-plan        "удалить план"
          :default-task-name "Задача"
          :history           "История"
+         :language          "Язык"
          :length            "Длительность задачи"
          :long-break        "Длинный перерыв"
          :min               "Минуты"

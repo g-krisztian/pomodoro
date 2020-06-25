@@ -79,7 +79,6 @@
       (ui/button-element (@state :active) width (dict/get-text state :add-task width) #(add-new-task-to-plan state))
       (ui/button-element (@state :active) width (dict/get-text state :short-break width) #(short-break state))
       (ui/button-element (@state :active) width (dict/get-text state :long-break width) #(long-break state))]
-
      (when-let [plan (storage/get-plan)]
        [:div
         [:p]
