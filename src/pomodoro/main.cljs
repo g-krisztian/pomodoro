@@ -43,21 +43,24 @@
      [:p]]))
 
 (defn lang-switcher [state]
-  [:div {:style {:float      :right
-                 :margin-top "2.8rem"}}
+  [:div#lang-switcher {:style {:float      :right
+                               :margin-top "2.8rem"}}
    (let [label (dict/get-text state :language)
-         width (* 1.1 (dict/measure-text label))]
+         width (* 1.1 (dict/measure-text label))
+         dictionaries (:dictionaries @state)]
      (ui/dropdown false width label
-                  (ui/dropdown-item "English" #(dict/get-dictionary state "en"))
-                  (ui/dropdown-item "Russian" #(dict/get-dictionary state "ru"))
-                  (ui/dropdown-item "Hungarian" #(dict/get-dictionary state "hu"))))
+          (map
+            (fn [d] (ui/dropdown-item (:language d) #(dict/get-dictionary state (:code d))))
+            dictionaries)))
    [:p]])
 
 (defn main [state & context]
   (into [:div#:app {:style {:margin "auto"
                             :width  "max-content"}}
          [:div {:style {:float :left}}
-          [:h1 "Pomodoro app"]
+          [:h1 (if (> 385 (:width @state))
+                 "Pomodoro"
+                 "Pomodoro app")]
           [:h3 (str "Time: " (tf/render-time (tf/correct-time (:now @state))))]]]
         context))
 

@@ -17,6 +17,7 @@
          :start-timer     "Start"
          :stop-batch      "Stop"
          :stop-timer      "Stop"
+         :summary         "Sum"
          :task-name       "Task"
          :real-duration   "Real"}
  :long  {:add-task          "Add task"

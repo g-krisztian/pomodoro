@@ -18,6 +18,7 @@
   ([state storage language]
    (.addEventListener js/window "resize" #(change-width state))
    (change-width state)
+   (dict/get-dictionaries state)
    (dict/get-dictionary state language)
    (storage/init storage)
    (action/reset-task state)))

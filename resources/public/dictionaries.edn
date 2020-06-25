@@ -1,0 +1,8 @@
+[{:language "Language"
+  :code "en"}
+ {:language "Язык"
+  :code "ru"}
+ {:language "Lingua"
+  :code "it"}
+ {:language "Nyelv"
+  :code "hu"}]

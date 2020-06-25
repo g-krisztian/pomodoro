@@ -11,6 +11,16 @@
        {:handler       #(load-dictionary state %1)
         :error-handler #(get-dictionary state "en")}))
 
+
+(defn load-dictionaries [state response]
+  (let [languages (cljs.reader/read-string response)]
+    (swap! state assoc :dictionaries languages)))
+
+(defn get-dictionaries [state]
+  (GET "/dictionaries.edn"
+       {:handler       #(load-dictionaries state %1)
+        :error-handler #(js/alert "Can't load any language files.\nTry again later!")}))
+
 (defn span
   ([state visibility]
    [:div

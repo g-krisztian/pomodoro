@@ -29,11 +29,11 @@
 
 (defn applet []
   (when (:dictionary @app-state)
-    (main/set-title app-state)
     (main/main app-state
                (when (:ready @app-state)
+                 (main/set-title app-state)
                  [:div
-                  (main/lang-switcher app-state)
+                  (when (:dictionaries @app-state) (main/lang-switcher app-state))
                   (main/choose-view app-state)
                   (main/show-view app-state)])
       (dict/span app-state :hidden))))
