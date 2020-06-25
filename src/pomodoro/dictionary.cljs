@@ -1,5 +1,15 @@
 (ns pomodoro.dictionary
-  (:require [pomodoro.action :as action]))
+  (:require [pomodoro.action :as action]
+            [ajax.core :refer [GET]]))
+
+(defn load-dictionary [state response]
+  (let [dict (cljs.reader/read-string response)]
+    (swap! state merge {:dictionary dict :task-name (get-in dict [:long :default-task-name])})))
+
+(defn get-dictionary [state language]
+  (GET (str "/dictionary_" language ".edn")
+       {:handler       #(load-dictionary state %1)
+        :error-handler #(get-dictionary state "en")}))
 
 (defn span
   ([state visibility]
