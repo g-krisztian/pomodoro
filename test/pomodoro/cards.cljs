@@ -32,7 +32,7 @@
                              :ready             false
                              :unit              :sec}))
 
-(init/init state-atom :pomodoro-cards "hu")
+(init/init state-atom :pomodoro-cards "it")
 
 (defonce ticker (js/setInterval #(pc/main-loop state-atom) 1000))
 
