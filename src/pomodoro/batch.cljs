@@ -17,13 +17,6 @@
 (defn get-task-in-milisec [task]
   (* 1000 (action/get-task-in-seconds task)))
 
-(defn run-next-item [state]
-  (let [plan (:remain-plan @state)]
-    (action/add-to-history state)
-    (if (empty? plan)
-      (action/reset-task state)
-      (action/run-plan state))))
-
 (defn plan-runner [state]
   (when (storage/contains-plan?)
     (let [full-width (min 600 (* (:width @state) 0.94))
@@ -34,11 +27,12 @@
                   :else full-width)]
       [:div
        [:div {:class "btn-group" :style {:margin-top "1%"}}
-        (ui/hideable-button-element (@state :active) width (dict/get-text state :start-batch width) #(action/start-plan state))
-        (ui/hideable-button-element (@state :paused) width (dict/get-text state :pause-timer width) #(action/pause-button-on-click state))
-        (ui/hideable-button-element (@state :resume) width (dict/get-text state :resume-timer width) #(action/pause-button-on-click state))
-        (when skip-visible (ui/hideable-button-element (@state :stop) width (dict/get-text state :run-next width) #(run-next-item state)))
-        (ui/hideable-button-element (@state :stop) width (dict/get-text state :stop-batch width) #(action/stop-button-on-click state))]
+        (when-not (@state :active) (ui/start-plan-button state width))
+        (when-not (@state :paused) (ui/pause-button state width))
+        (when-not (@state :resume) (ui/resume-button state width))
+        (when (and (not (@state :stop)) (not-empty (:remain-plan @state)))
+          (ui/run-next-button state width))
+        (when-not (@state :stop) (ui/stop-button state width))]
        [:div {:style {:margin-top "1%"}}
         (ui/progress-bar state)]])))
 
@@ -86,6 +80,6 @@
       (ui/button-element (@state :active) width (dict/get-text state :add-task width) #(add-new-task-to-plan state))
       (ui/button-element (@state :active) width (dict/get-text state :short-break width) #(short-break state))
       (ui/button-element (@state :active) width (dict/get-text state :long-break width) #(long-break state))]
-     [:p]
+     (when [:p])
      (plan-table state)
      (plan-runner state)]))

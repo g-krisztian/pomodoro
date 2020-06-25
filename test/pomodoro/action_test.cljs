@@ -136,15 +136,15 @@
 
 (deftest get-real-duration
   (is (= 200 (action/get-real-duration (r/atom {:start-time 0
-                                                :now 200}))))
+                                                :now        200}))))
   (is (= 200 (action/get-real-duration (r/atom {:start-time  0
                                                 :paused-time 100
                                                 :paused      false
-                                                :now 200}))))
+                                                :now         200}))))
   (is (= 100 (action/get-real-duration (r/atom {:start-time  0
                                                 :paused-time 100
                                                 :paused      true
-                                                :now 200})))))
+                                                :now         200})))))
 
 (deftest add-to-history
   (pomodoro.cookie-storage/delete-history)
@@ -153,7 +153,7 @@
                                   :start-time        0
                                   :key               0
                                   :duration          200
-                                  :now 200}))
+                                  :now               200}))
   (let [history (pomodoro.cookie-storage/get-history)]
     (are [k v] (= (get (first history) k) v)
                :task-name "task-name"
@@ -176,3 +176,102 @@
     (is (not (:paused @state)))
     (is (not (:resume @state)))
     (is (int? (:paused-time @state)))))
+
+(deftest run-next-item-with-no-more-task
+  (pomodoro.cookie-storage/delete-history)
+  (let [app-state (r/atom {:remain-plan       []
+                           :length-in-seconds 5
+                           :key               3
+                           :start-time        12345
+                           :now               234567
+                           :task-name         "task-name"
+                           :dictionary        {:long-break  "Long break"
+                                               :short-break "Short break"}
+                           :length            10
+                           :unit              :min
+                           :get-key           #(int 4)})]
+
+    (action/run-next-item app-state)
+    (let [history (pomodoro.cookie-storage/get-history)
+          remain-plan (:remain-plan @app-state)]
+      ;check history
+      (is (seq? history))
+      (is (not-empty history))
+      (is (= {:task-name "task-name"
+              :length    5
+              :start     12345
+              :key       "history_3"
+              :duration  222222}
+             (first history)))
+      ;check remain plan
+      (is (vector? remain-plan))
+      (is (empty remain-plan))
+      ;check app-state is not running
+      (are [k v] (= (get @app-state k) v)
+                 :paused true
+                 :key 3
+                 :length-in-seconds 5
+                 :start-time 12345
+                 :task-name "task-name"
+                 :stop true
+                 :active false
+                 :remain-plan []
+                 :resume true
+                 :elapsed 0)))
+  (pomodoro.cookie-storage/delete-history))
+
+(deftest run-next-item-with-two-tasks
+  (pomodoro.cookie-storage/delete-history)
+  (let [task {:task-name         "task-name"
+              :length            61
+              :unit              :sec
+              :key               "plan_3"
+              :length-in-seconds 61}
+        second-task {:task-name         "task-name"
+                     :length            61
+                     :unit              :sec
+                     :key               "plan_4"
+                     :length-in-seconds 61}
+        tasks [task second-task]
+        app-state (r/atom {:task-name  "task-name"
+                           :dictionary {:long-break  "Long break"
+                                        :short-break "Short break"}
+                           :length     10
+                           :unit       :min
+                           :get-key    #(int 3)
+                           :remain-plan       tasks
+                           :length-in-seconds 5
+                           :key               2
+                           :start-time        12345
+                           :now               123456})]
+
+
+    (action/run-next-item app-state)
+    (let [history (pomodoro.cookie-storage/get-history)
+          remain-plan (:remain-plan @app-state)]
+      (is (seq? history))
+      (is (not-empty history))
+      (is (= {:task-name "task-name"
+              :length    5
+              :start     12345
+              :key       "history_2"
+              :duration  111111}
+             (first history)))
+      (is (vector? remain-plan))
+      (is (not-empty remain-plan))
+      (is (= second-task (first remain-plan)))
+      (are [k v] (= (get @app-state k) v)
+                 :paused false
+                 :key 3
+                 :length-in-seconds 61
+                 :unit :sec
+                 :task-name "task-name"
+                 :stop false
+                 :active true
+                 :remain-plan [{:task-name         "task-name"
+                                :length            61
+                                :unit              :sec
+                                :key               "plan_4"
+                                :length-in-seconds 61}]
+                 :length 61)))
+  (pomodoro.cookie-storage/delete-history))

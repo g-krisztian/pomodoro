@@ -89,3 +89,9 @@
   (audio/playback-mp3)
   (when-not (empty? (:remain-plan @state)) (run-plan state)))
 
+(defn run-next-item [state]
+  (let [plan (:remain-plan @state)]
+    (add-to-history state)
+    (if (empty? plan)
+      (reset-task state)
+      (run-plan state))))

@@ -14,13 +14,11 @@
               :paddingRight "0.3rem"}
    :on-click callback})
 
-(defn button-element [disabled width value callback]
-  [:input (merge (common-button-style width value callback)
-                 {:disabled disabled})])
+(defn common-button [width value callback]
+  [:input (common-button-style width value callback)])
 
-(defn hideable-button-element [hide width value callback]
-  (when-not hide [:input
-                  (common-button-style width value callback)]))
+(defn button-element [disabled width value callback]
+  [:input (assoc (common-button-style width value callback) :disabled disabled)])
 
 (defn dropdown-item [label action]
   [:a {:type     "button"
@@ -101,6 +99,42 @@
             :aria-valuenow progress}
       (tf/render-time (* 1000 elapsed))]]))
 
+(defn start-button [state width]
+  (common-button
+    width
+    (dict/get-text state :start-timer width)
+    #(action/start-button-on-click state)))
+
+(defn start-plan-button [state width]
+  (common-button
+    width
+    (dict/get-text state :start-batch width)
+    #(action/start-plan state)))
+
+(defn pause-button [state width]
+  (common-button
+    width
+    (dict/get-text state :pause-timer width)
+    #(action/pause-button-on-click state)))
+
+(defn resume-button [state width]
+  (common-button
+    width
+    (dict/get-text state :resume-timer width)
+    #(action/pause-button-on-click state)))
+
+(defn run-next-button [state width]
+  (common-button
+    width
+    (dict/get-text state :run-next width)
+    #(action/run-next-item state)))
+
+(defn stop-button [state width]
+  (common-button
+    width
+    (dict/get-text state :stop-timer width)
+    #(action/stop-button-on-click state)))
+
 (defn control-buttons [state]
   (let [full-width (min 600 (* (:width @state) 0.94))
         width (if (:active @state)
@@ -108,9 +142,9 @@
                 full-width)]
     [:div
      [:div {:class "btn-group" :style {:margin-top "1%"}}
-      (hideable-button-element (@state :active) width (dict/get-text state :start-timer width) #(action/start-button-on-click state))
-      (hideable-button-element (@state :paused) width (dict/get-text state :pause-timer width) #(action/pause-button-on-click state))
-      (hideable-button-element (@state :resume) width (dict/get-text state :resume-timer width) #(action/pause-button-on-click state))
-      (hideable-button-element (@state :stop) width (dict/get-text state :stop-timer width) #(action/stop-button-on-click state))]
+      (when-not (@state :active) (start-button state width))
+      (when-not (@state :paused) (pause-button state width))
+      (when-not (@state :resume) (resume-button state width))
+      (when-not (@state :stop) (stop-button state width))]
      [:div {:style {:margin-top "1%"}}
       (progress-bar state)]]))
