@@ -29,6 +29,7 @@
 
 (defn applet []
   (when (:dictionary @app-state)
+    (main/set-title app-state)
     (main/main app-state
                (dict/span app-state :hidden)
                (when (:ready @app-state) (main/choose-view app-state))

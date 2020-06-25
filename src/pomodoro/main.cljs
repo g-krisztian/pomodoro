@@ -8,6 +8,17 @@
             [pomodoro.time-format :as tf]
             [pomodoro.dictionary :as dict]))
 
+(defn set-title [state]
+  (set! js/document.title (str "Pompdoro - "
+                               (dict/get-text state (:view @state))
+                               " "
+                               (when
+                                 (:active @state)
+                                 (str "| "
+                                      (:task-name @state)
+                                      ": "
+                                      (tf/render-time (* 1000 (:elapsed @state))))))))
+
 (defn show-view [state]
   (condp = (:view @state)
     :summary (summary/summary state)

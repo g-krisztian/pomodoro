@@ -22,24 +22,13 @@
 (defn change-width [state]
   (swap! state assoc :width (.-innerWidth js/window)))
 
-(defn set-title [state]
-  (set! js/document.title (str "Pompdoro - "
-                               (dict/get-text state (:view @state))
-                               " "
-                               (when
-                                 (:active @state)
-                                 (str "| "
-                                      (:task-name @state)
-                                      ": "
-                                      (tf/render-time (* 1000 (:elapsed @state))))))))
 (defn init
   ([state storage]
    (init state storage (browser-language)))
   ([state storage language]
-   (set-title state)
    (.addEventListener js/window "resize" #(change-width state))
    (change-width state)
-   (get-dictionary state language)
+   (dict/get-dictionary state language)
    (storage/init storage)
    (action/reset-task state)))
 
