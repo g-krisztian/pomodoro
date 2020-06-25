@@ -36,25 +36,24 @@
        [:div {:style {:margin-top "1%"}}
         (ui/progress-bar state)]])))
 
-(defn plan-table [state]
-  (when-let [plan (storage/get-plan)]
-    (let [full-width (* (:width @state) 0.94)
-          width (min 120 (* full-width 0.33))]
-      [:div#plan
-       [:table {
-                :class "table table-striped table-bordered" :id "plan"
-                :style {:width (min 600 full-width)}}
-        [:thead {:class "thead-dark"}
-         [:tr
-          [:th (dict/get-text state :task-name width)]
-          [:th (str (dict/get-text state :planed-time width) (tf/render-time (* 1000 (reduce + (map long (map :length-in-seconds plan))))))]
-          [:th (ui/button-element (@state :active) width (dict/get-text state :clear-plan width) #(storage/delete-plan))]]]
-        (into [:tbody]
-              (for [task plan]
-                [:tr {:key (:key task)}
-                 [:td (:task-name task)]
-                 [:td (tf/render-time (get-task-in-milisec task))]
-                 [:td (ui/button-element (@state :active) width (dict/get-text state :remove width) #(storage/set-plan (remove (fn [t] (= t task)) plan)))]]))]])))
+(defn plan-table [state plan]
+  (let [full-width (* (:width @state) 0.94)
+        width (min 120 (* full-width 0.33))]
+    [:div#plan
+     [:table {
+              :class "table table-striped table-bordered" :id "plan"
+              :style {:width (min 600 full-width)}}
+      [:thead {:class "thead-dark"}
+       [:tr
+        [:th (dict/get-text state :task-name width)]
+        [:th (str (dict/get-text state :planed-time width) (tf/render-time (* 1000 (reduce + (map long (map :length-in-seconds plan))))))]
+        [:th (ui/button-element (@state :active) width (dict/get-text state :clear-plan width) #(storage/delete-plan))]]]
+      (into [:tbody]
+            (for [task plan]
+              [:tr {:key (:key task)}
+               [:td (:task-name task)]
+               [:td (tf/render-time (get-task-in-milisec task))]
+               [:td (ui/button-element (@state :active) width (dict/get-text state :remove width) #(storage/set-plan (remove (fn [t] (= t task)) plan)))]]))]]))
 
 (defn short-break [state]
   (add-to-plan {:task-name         (dict/get-text state :short-break)
@@ -80,6 +79,9 @@
       (ui/button-element (@state :active) width (dict/get-text state :add-task width) #(add-new-task-to-plan state))
       (ui/button-element (@state :active) width (dict/get-text state :short-break width) #(short-break state))
       (ui/button-element (@state :active) width (dict/get-text state :long-break width) #(long-break state))]
-     (when [:p])
-     (plan-table state)
-     (plan-runner state)]))
+
+     (when-let [plan (storage/get-plan)]
+       [:div
+        [:p]
+        (plan-table state plan)
+        (plan-runner state)])]))
