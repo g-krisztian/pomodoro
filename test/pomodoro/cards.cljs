@@ -40,10 +40,6 @@
          (fn [data _]
            (sab/html (dict/span data :visible (get-in @data [:dictionary :long :default-task-name]))))
          state-atom)
-
-(defn render-when [data f]
-  (when (:ready @data) (sab/html f)))
-
 (defcard dictionary
          (fn [data _]
            (when (:ready @data)
