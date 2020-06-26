@@ -55,6 +55,12 @@
 (defn set-history [h]
   (set-by-key :history h))
 
+(defn get-language []
+  (get-by-key :language))
+
+(defn set-language [v]
+  (set-by-key :language v))
+
 (defn delete-history []
   (delete :history))
 

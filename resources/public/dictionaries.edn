@@ -1,8 +1,8 @@
-[{:language "Language"
+[{:language "English"
   :code "en"}
- {:language "Язык"
+ {:language "Русский"
   :code "ru"}
- {:language "Lingua"
+ {:language "Italiano"
   :code "it"}
- {:language "Nyelv"
+ {:language "Magyar"
   :code "hu"}]

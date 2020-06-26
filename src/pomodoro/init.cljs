@@ -14,7 +14,8 @@
 
 (defn init
   ([state storage]
-   (init state storage (browser-language)))
+   (let [language (or (storage/get-language) (browser-language))]
+     (init state storage language)))
   ([state storage language]
    (.addEventListener js/window "resize" #(change-width state))
    (change-width state)
