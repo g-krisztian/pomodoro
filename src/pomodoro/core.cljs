@@ -7,8 +7,7 @@
             [reagent.core :as r]
             [pomodoro.dictionary :as dict]))
 
-(defonce app-state (r/atom {:get-key   storage/get-key
-                            :length    25
+(defonce app-state (r/atom {:length    25
                             :ready     false
                             :elapsed   0
                             :task-name "Default"
@@ -36,7 +35,7 @@
                   (when (:dictionaries @app-state) (main/lang-switcher app-state))
                   (main/choose-view app-state)
                   (main/show-view app-state)])
-      (dict/span app-state :hidden))))
+               (dict/span app-state :hidden))))
 
 
 (rd/render [applet] (. js/document (getElementById "app")))

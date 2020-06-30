@@ -12,18 +12,17 @@
     (is (nil? (pomodoro.action/get-task-in-seconds {})))) "If no :length the the result is nil")
 
 (deftest plan-creation
+  (pomodoro.cookie-storage/set-next-key 3)
   (testing "Creating a task for a plan"
-    (let [keygen #(int 3)]
-      (is (= {:task-name         "task-name"
-              :length            61
-              :unit              :sec
-              :key               "plan_3"
-              :length-in-seconds 61}
-             (pomodoro.action/new-plan (r/atom {:task-name "task-name"
-                                                :length    61
-                                                :unit      :sec
-                                                :get-key   keygen})))
-          "Creates a task"))))
+    (is (= {:task-name         "task-name"
+            :length            61
+            :unit              :sec
+            :key               "plan_3"
+            :length-in-seconds 61}
+           (pomodoro.action/new-plan (r/atom {:task-name "task-name"
+                                              :length    61
+                                              :unit      :sec})))
+        "Creates a task")))
 
 (deftest swap-unit
   (testing "swapping unit"
@@ -31,35 +30,29 @@
     (is (= {:unit :sec} (pomodoro.action/swap-unit (r/atom {}) :sec))) "set unit to second"))
 
 (deftest start-button-on-click
-  (let [next-key 1
-        keygen #(int next-key)
-        state (r/atom {:task-name "task-name"
+  (let [state (r/atom {:task-name "task-name"
                        :length    10
-                       :unit      :min
-                       :get-key   keygen})
+                       :unit      :min})
         result (action/start-button-on-click state)]
     (are [x y] (= x y)
                (result :active) true
                (result :paused) false
                (result :stop) false
                (int? (result :start-time)) true
-               (result :key) next-key
                (result :length) 10
                (result :unit) :min
                (result :length-in-seconds) 600
                (result :task-name) "task-name"
-               (fn? (result :get-key)) true
                (result :elapsed) 0)))
 
 (deftest run-plan
-  (let [keygen #(int 1)
-        task {:task-name         "task-name"
+  (pomodoro.cookie-storage/set-next-key 1)
+  (let [task {:task-name         "task-name"
               :length            61
               :unit              :sec
               :key               "plan_3"
               :length-in-seconds 61}
-        state (r/atom {:remain-plan [task]
-                       :get-key     keygen})]
+        state (r/atom {:remain-plan [task]})]
     (action/run-plan state)
     (are [x y] (= (get @state x) y)
                :paused false
@@ -75,13 +68,13 @@
     (is (int? (:start-time @state)))))
 
 (deftest start-plan
-  (let [keygen #(int 1)
-        task {:task-name         "task-name"
+  (pomodoro.cookie-storage/set-next-key 1)
+  (let [task {:task-name         "task-name"
               :length            61
               :unit              :sec
               :key               "plan_3"
               :length-in-seconds 61}
-        state (r/atom {:get-key keygen})]
+        state (r/atom {})]
     (pomodoro.cookie-storage/set-plan [task])
     (action/start-plan state)
     (are [x y] (= (get @state x) y)
@@ -98,13 +91,13 @@
   (pomodoro.cookie-storage/delete-plan))
 
 (deftest restart
-  (let [keygen #(int 1)
-        task {:task-name         "task-name"
+  (pomodoro.cookie-storage/set-next-key 1)
+  (let [task {:task-name         "task-name"
               :length            61
               :unit              :sec
               :key               "history_4"
               :length-in-seconds 61}
-        state (r/atom {:get-key keygen})]
+        state (r/atom {})]
     (action/restart state task)
     (are [x y] (= (get @state x) y)
                :paused false
@@ -188,8 +181,7 @@
                            :dictionary        {:long-break  "Long break"
                                                :short-break "Short break"}
                            :length            10
-                           :unit              :min
-                           :get-key           #(int 4)})]
+                           :unit              :min})]
 
     (action/run-next-item app-state)
     (let [history (pomodoro.cookie-storage/get-history)
@@ -222,6 +214,7 @@
 
 (deftest run-next-item-with-two-tasks
   (pomodoro.cookie-storage/delete-history)
+  (pomodoro.cookie-storage/set-next-key 3)
   (let [task {:task-name         "task-name"
               :length            61
               :unit              :sec
@@ -233,12 +226,11 @@
                      :key               "plan_4"
                      :length-in-seconds 61}
         tasks [task second-task]
-        app-state (r/atom {:task-name  "task-name"
-                           :dictionary {:long-break  "Long break"
-                                        :short-break "Short break"}
-                           :length     10
-                           :unit       :min
-                           :get-key    #(int 3)
+        app-state (r/atom {:task-name         "task-name"
+                           :dictionary        {:long-break  "Long break"
+                                               :short-break "Short break"}
+                           :length            10
+                           :unit              :min
                            :remain-plan       tasks
                            :length-in-seconds 5
                            :key               2

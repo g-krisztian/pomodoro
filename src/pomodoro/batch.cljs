@@ -60,14 +60,14 @@
                 :length-in-seconds 300
                 :length            5
                 :unit              :min
-                :key               (str "plan_" ((@state :get-key)))}))
+                :key               (str "plan_" (storage/get-key))}))
 
 (defn long-break [state]
   (add-to-plan {:task-name         (dict/get-text state :long-break)
                 :length-in-seconds 900
                 :length            15
                 :unit              :min
-                :key               (str "plan_" ((@state :get-key)))}))
+                :key               (str "plan_" (storage/get-key))}))
 
 (defn planning [state]
   (let [width (min 200 (* (:width @state) 0.315))]

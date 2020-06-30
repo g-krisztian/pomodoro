@@ -10,13 +10,12 @@
            :length-in-seconds 61})
 
 
-(defn state [key]
+(def state
   (r/atom {:task-name  "task-name"
            :dictionary {:long {:long-break  "Long break"
                                :short-break "Short break"}}
            :length     10
-           :unit       :min
-           :get-key    #(int key)}))
+           :unit       :min}))
 
 (deftest add-to-plan
   ;GIVEN
@@ -31,8 +30,9 @@
 (deftest add-new-task-to-plan
   ;GIVEN
   (pomodoro.cookie-storage/delete-plan)
+  (pomodoro.cookie-storage/set-next-key 0)
   ;WHEN
-  (batch/add-new-task-to-plan (state 0))
+  (batch/add-new-task-to-plan state)
   ;THEN
   (let [plan (pomodoro.cookie-storage/get-plan)]
     (is (vector? plan))
@@ -48,7 +48,8 @@
 
 (deftest add-short-break
   (pomodoro.cookie-storage/delete-plan)
-  (batch/short-break (state 4))
+  (pomodoro.cookie-storage/set-next-key 4)
+  (batch/short-break state)
   (let [plan (pomodoro.cookie-storage/get-plan)
         break {:task-name         "Short break"
                :length-in-seconds 300
@@ -60,7 +61,7 @@
 
 (deftest add-long-break
   (pomodoro.cookie-storage/delete-plan)
-  (batch/long-break (state 5))
+  (batch/long-break state)
   (let [plan (pomodoro.cookie-storage/get-plan)
         break {:task-name         "Long break"
                :length-in-seconds 900

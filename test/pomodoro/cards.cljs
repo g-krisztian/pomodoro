@@ -18,8 +18,7 @@
     [devcards.core :refer [defcard]]))
 
 
-(defonce state-atom (r/atom {:get-key           pcs/get-key
-                             :width             (.-innerWidth js/window)
+(defonce state-atom (r/atom {:width             (.-innerWidth js/window)
                              :length            25
                              :length-in-seconds 25
                              :elapsed           10
@@ -32,7 +31,7 @@
                              :ready             false
                              :unit              :sec}))
 
-(init/init state-atom :pomodoro-cards "it")
+(init/init state-atom :pomodoro-cards "tr")
 
 (defonce ticker (js/setInterval #(pc/main-loop state-atom) 1000))
 

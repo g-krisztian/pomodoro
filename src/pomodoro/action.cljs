@@ -10,7 +10,7 @@
 
 (defn new-plan [state]
   (let [task (select-keys @state [:task-name :length :unit])]
-    (merge task {:key               (str "plan_" ((@state :get-key)))
+    (merge task {:key               (str "plan_" (storage/get-key))
                  :length-in-seconds (get-task-in-seconds task)})))
 
 (defn swap-value [state key e]
@@ -32,7 +32,7 @@
           :active            true
           :stop              false
           :length-in-seconds (get-task-in-seconds @state)
-          :key               ((@state :get-key))}))
+          :key               (storage/get-key)}))
 
 (defn run-plan [state]
   (let [batch (:remain-plan @state)]
