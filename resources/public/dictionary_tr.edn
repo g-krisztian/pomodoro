@@ -1,0 +1,71 @@
+{:short {:add-task "Ekle"
+         :clear-plan "Silme"
+         :length "Uzunluğu"
+         :planning "Paket"
+         :restart "Tekrar"
+         :resume-timer "Devam"
+         :run-next "Sonrakini"
+         :single-run "Tek"
+         :spent-time "Harcanan"
+         :start-batch "Başlat"
+         :start-timer "Başlat"
+         :stop-batch "Durdur"
+         :stop-timer "Durdur"}
+ :long {:add-task          "Görev ekle"
+        :clear-plan        "Planı temizle"
+        :default-task-name "Görev"
+        :history           "Tarih"
+        :language          "Lisan"
+        :length            "Görev uzunluğu"
+        :long-break        "Uzun ara"
+        :min               "Dakika"
+        :pause-timer       "Duraklat"
+        :planed-duration   "Planlanan süre"
+        :planed-time       "Planlanan zaman: "
+        :planning          "Toplu çalıştırma"
+        :real-duration     "Gerçek süre"
+        :remove            "Kaldırmak"
+        :restart           "Tekrar başlat"
+        :resume-timer      "Devam et"
+        :run-next          "Sonrakini çalıştır"
+        :sec               "Saniye"
+        :short-break       "Kısa ara"
+        :single-run        "Tek sefer"
+        :spent-time        "Harcanan zaman"
+        :start-batch       "Toplu işi başlat"
+        :start-time        "Başlangıç saati"
+        :start-timer       "Zamanlayıcıyı başlat"
+        :stop-batch        "Toplu işi durdur"
+        :stop-timer        "Zamanlayıcıyı durdur"
+        :summary           "Özet"
+        :task-name         "Görev adı"}}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
