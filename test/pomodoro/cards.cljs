@@ -8,7 +8,6 @@
     [pomodoro.history :as ph]
     [pomodoro.summary :as ps]
     [pomodoro.ui-common :as pui]
-    [pomodoro.cookie-storage :as pcs]
     [pomodoro.init :as init]
     [reagent.core :as r]
     [ajax.core :refer [GET]]
