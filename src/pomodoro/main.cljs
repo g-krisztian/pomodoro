@@ -46,7 +46,7 @@
   [:div#lang-switcher {:style {:float      :right
                                :margin-top "2.8rem"}}
    (let [label (dict/get-text state :language)
-         width (* 1.1 (dict/measure-text label))
+         width (max 48 (* 1.1 (dict/measure-text label)))
          dictionaries (:dictionaries @state)]
      (ui/dropdown false width label
           (map
