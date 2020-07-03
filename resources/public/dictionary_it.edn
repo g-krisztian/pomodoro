@@ -5,7 +5,7 @@
          :planed-duration "Durata"
          :planed-time     "Tempo: "
          :real-duration   "Reale"
-         :run-next        "A seguire"
+         :run-next        "Successivo"
          :single-run      "Singola"
          :spent-time      "Tempo: "
          :start-batch     "Avvia"
