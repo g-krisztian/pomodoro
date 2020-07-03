@@ -2,20 +2,23 @@
   (:require [clojure.java.io :as io]
             [clojure.walk :refer [keywordize-keys]]
             [clojure.tools.reader :as reader]))
+
 (defmacro inline-resource [resource-path]
   (slurp (io/resource resource-path)))
 
-(defn dictionary? [file]
-  (re-matches #".*dictionary_[a-z]{2}.edn" (.getName file)))
+(def dictionary-matcher #".*dictionary_([a-z]{2}).edn")
+
+(defn dictionary-file? [file]
+  (re-matches dictionary-matcher (.getName file)))
 
 (defmacro files-in-dir [directory]
   (mapv (fn [x] (.getPath x)) (.listFiles (io/file directory))))
 
 (defn extract-code [filename]
-  (second (re-matches #".*dictionary_([a-z]{2}).edn" filename)))
+  (second (re-matches dictionary-matcher filename)))
 
-(defn map-reader [f]
-  (keywordize-keys {(extract-code (.getName f)) (reader/read-string (slurp f))}))
+(defn reduce-reader [m f]
+  (assoc m (extract-code (.getName f)) (reader/read-string (slurp f))))
 
 (defmacro read-all-dictionary [directory]
   (->> directory
@@ -23,7 +26,8 @@
        (.listFiles)
        (remove #(.isDirectory %))
        (remove #(.isHidden %))
-       (filter dictionary?)
-       (mapv map-reader)))
+       (filter dictionary-file?)
+       (reduce reduce-reader {})
+       (keywordize-keys)))
 
-
+(def all-dictionary (read-all-dictionary "resources/public"))
