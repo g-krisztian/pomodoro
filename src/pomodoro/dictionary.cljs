@@ -25,16 +25,15 @@
 
 (defn span
   ([state visibility]
-   [:div
-    [:span {:class "input-group-text"
-            :id    "text-meter"
-            :ref   #(when-not (:ready @state) (action/set-ready state true))
-            :style {
-                    :visibility   visibility
-                    :margin       "auto"
-                    :width        "max-content"
-                    :paddingLeft  "0.5rem"
-                    :paddingRight "0.5rem"}}]])
+   [:p {:class "input-group-text"
+        :id    "text-meter"
+        :ref   #(when-not (:ready @state) (action/set-ready state true))
+        :style {
+                :visibility   visibility
+                :margin       "auto"
+                :width        "max-content"
+                :paddingLeft  "0.5rem"
+                :paddingRight "0.5rem"}}])
   ([state visibility t]
    (into (span state visibility) t)))
 
